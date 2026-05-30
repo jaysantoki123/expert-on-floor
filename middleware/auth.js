@@ -1,46 +1,47 @@
-
 import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
-import Expert from '../models/Expert.js';
+import { User, Expert } from '../models/index.js';
 
 export const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Authorization header required (Bearer token)' });
+      return res.status(401).json({ success: false, message: 'Authorization header required (Bearer token)' });
     }
 
     const token = authHeader.split(' ')[1];
-    if (!token) return res.status(401).json({ message: 'Token required' });
+    if (!token) return res.status(401).json({ success: false, message: 'Token required' });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    const user = await User.findByPk(decoded.id, {
+      attributes: { exclude: ['password'] }
+    });
+    
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
     // Attach user to request
     req.user = user;
 
-    // If expert, attach expertId for convenience in controllers
+    // If expert, attach expertId for convenience
     if (user.role === 'expert') {
-      const expert = await Expert.findOne({ userId: user._id });
+      const expert = await Expert.findOne({ where: { userId: user.id } });
       if (expert) {
-        req.user.expertId = expert._id;
+        req.user.expertId = expert.id;
       }
     }
 
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ message: 'Token expired' });
+      return res.status(401).json({ success: false, message: 'Token expired' });
     }
-    res.status(401).json({ message: 'Invalid token' });
+    res.status(401).json({ success: false, message: 'Invalid token' });
   }
 };
 
 export const roleMiddleware = (roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Forbidden: Access denied' });
+      return res.status(403).json({ success: false, message: 'Forbidden: Access denied' });
     }
     next();
   };

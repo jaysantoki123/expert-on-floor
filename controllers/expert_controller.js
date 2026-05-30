@@ -1,130 +1,175 @@
+import { Expert, User, Review } from '../models/index.js';
+import { Op } from 'sequelize';
 
-import Expert from '../models/Expert.js';
-import User from '../models/User.js';
-
-// GET /experts - List all verified experts with pagination/filtering
 export const getExperts = async (req, res) => {
   try {
-    const { page = 1, limit = 10, expertise, minRating } = req.query;
-    const query = { verificationStatus: 'verified' };
+    const { category, skill, minRating, maxPrice, available, sort, page = 1, limit = 20 } = req.query;
+    const where = {};
     
-    if (expertise) query.expertise = { $in: [expertise] };
-    if (minRating) query.avgRating = { $gte: parseFloat(minRating) };
+    if (category) where.category = category;
+    if (skill) {
+      where.skills = {
+        [Op.like]: `%${skill}%` // Note: Simplified for JSON array search in MySQL
+      };
+    }
+    if (minRating) where.avgRating = { [Op.gte]: parseFloat(minRating) };
+    if (maxPrice) where.pricePerHour = { [Op.lte]: parseInt(maxPrice) };
+    if (available === 'true') where.isAvailable = true;
 
-    const experts = await Expert.find(query)
-      .populate('userId', 'fullName profileImage')
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .exec();
+    let order = [['createdAt', 'DESC']];
+    if (sort === 'rating') order = [['avgRating', 'DESC']];
+    else if (sort === 'price_asc') order = [['pricePerHour', 'ASC']];
+    else if (sort === 'price_desc') order = [['pricePerHour', 'DESC']];
+    else if (sort === 'sessions') order = [['totalSessions', 'DESC']];
 
-    const count = await Expert.countDocuments(query);
+    const { rows: experts, count: total } = await Expert.findAndCountAll({
+      where,
+      include: [{ model: User, as: 'user', attributes: ['name', 'profileImage'] }],
+      order,
+      limit: parseInt(limit),
+      offset: (parseInt(page) - 1) * parseInt(limit)
+    });
 
     res.json({
-      experts,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page
+      success: true,
+      data: experts,
+      meta: {
+        page: parseInt(page),
+        total,
+        pages: Math.ceil(total / limit)
+      }
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// GET /experts/:id - Get expert profile with full details
 export const getExpertById = async (req, res) => {
   try {
-    const expert = await Expert.findById(req.params.id).populate('userId', 'fullName profileImage email phone');
-    if (!expert) return res.status(404).json({ message: 'Expert not found' });
-    res.json(expert);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// POST /experts/register - Register as expert with credentials
-export const registerExpert = async (req, res) => {
-  try {
-    const { expertise, yearsOfExperience, bio, hourlyRate, projectRate } = req.body;
-    const newExpert = new Expert({
-      userId: req.user.id, // from auth middleware
-      expertise,
-      yearsOfExperience,
-      bio,
-      hourlyRate,
-      projectRate
+    const expert = await Expert.findByPk(req.params.id, {
+      include: [{ model: User, as: 'user', attributes: ['name', 'profileImage', 'email', 'phone'] }]
     });
-    await newExpert.save();
+    if (!expert) return res.status(404).json({ success: false, message: 'Expert not found' });
     
-    // Update user role to expert
-    await User.findByIdAndUpdate(req.user.id, { role: 'expert' });
-    
-    res.status(201).json(newExpert);
+    res.json({ success: true, data: expert });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// PUT /experts/:id - Update expert profile (auth required)
-export const updateExpert = async (req, res) => {
+export const updateExpertProfile = async (req, res) => {
   try {
-    const updatedExpert = await Expert.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user.id },
-      req.body,
-      { new: true }
-    );
-    if (!updatedExpert) return res.status(404).json({ message: 'Expert not found or unauthorized' });
-    res.json(updatedExpert);
+    const expert = await Expert.findOne({ where: { userId: req.user.id } });
+    if (!expert) return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    
+    await expert.update(req.body);
+    
+    res.json({ success: true, message: 'Profile updated', data: expert });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
-// GET /experts/search - Search experts by expertise, location, rating
-export const searchExperts = async (req, res) => {
-  try {
-    const { query, location, minRating } = req.query;
-    const filter = { verificationStatus: 'verified' };
-    
-    if (query) {
-      filter.$or = [
-        { expertise: { $regex: query, $options: 'i' } },
-        { bio: { $regex: query, $options: 'i' } }
-      ];
-    }
-    
-    if (minRating) filter.avgRating = { $gte: parseFloat(minRating) };
-    
-    // Note: Location filtering would depend on how location is stored in User/Expert model
-    // Assuming we might add location to User model later
-
-    const experts = await Expert.find(filter).populate('userId', 'fullName profileImage');
-    res.json(experts);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// GET /experts/:id/reviews - Get expert reviews and ratings
 export const getExpertReviews = async (req, res) => {
   try {
-    const reviews = await mongoose.model('Review').find({ expertId: req.params.id }).populate('clientId', 'fullName profileImage');
-    res.json(reviews);
+    const { page = 1, limit = 20 } = req.query;
+    const { rows: reviews, count: total } = await Review.findAndCountAll({
+      where: { expertId: req.params.id },
+      include: [{ model: User, as: 'learner', attributes: ['name', 'profileImage'] }],
+      limit: parseInt(limit),
+      offset: (parseInt(page) - 1) * parseInt(limit),
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      data: reviews,
+      meta: { page: parseInt(page), total }
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// POST /experts/:id/availability - Set expert availability schedule
+export const submitReview = async (req, res) => {
+  try {
+    const { bookingId, rating, comment } = req.body;
+    const expertId = req.params.id;
+    
+    const existingReview = await Review.findOne({ where: { bookingId } });
+    if (existingReview) return res.status(400).json({ success: false, message: 'Review already submitted' });
+
+    const review = await Review.create({
+      bookingId,
+      learnerId: req.user.id,
+      expertId,
+      rating,
+      comment
+    });
+    
+    // Update expert rating
+    const expert = await Expert.findByPk(expertId);
+    if (expert) {
+      const prevTotal = expert.totalReviews || 0;
+      const prevAvg = parseFloat(expert.avgRating) || 0;
+      expert.totalReviews = prevTotal + 1;
+      expert.avgRating = ((prevAvg * prevTotal) + rating) / expert.totalReviews;
+      await expert.save();
+    }
+
+    res.status(201).json({ success: true, message: 'Review submitted' });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const registerExpert = async (req, res) => {
+  try {
+    const { title, category, experienceYears, pricePerHour, skills, bio, achievements } = req.body;
+    
+    const existingExpert = await Expert.findOne({ where: { userId: req.user.id } });
+    if (existingExpert) return res.status(400).json({ success: false, message: 'Expert profile already exists' });
+
+    const newExpert = await Expert.create({
+      userId: req.user.id,
+      title,
+      category,
+      experienceYears,
+      pricePerHour,
+      skills,
+      bio,
+      achievements
+    });
+    
+    await User.update({ role: 'expert' }, { where: { id: req.user.id } });
+    
+    res.status(201).json({ success: true, message: 'Expert profile created', data: newExpert });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getExpertAvailability = async (req, res) => {
+  try {
+    const expert = await Expert.findByPk(req.params.id);
+    if (!expert) return res.status(404).json({ success: false, message: 'Expert not found' });
+    res.json({ success: true, data: expert.availability });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const updateExpertAvailability = async (req, res) => {
   try {
     const { availability } = req.body;
-    const expert = await Expert.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user.id },
-      { availability },
-      { new: true }
-    );
-    if (!expert) return res.status(404).json({ message: 'Expert not found or unauthorized' });
-    res.json(expert);
+    const expert = await Expert.findOne({ where: { userId: req.user.id } });
+    if (!expert) return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    
+    expert.availability = availability;
+    await expert.save();
+    
+    res.json({ success: true, message: 'Availability updated', data: expert.availability });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };

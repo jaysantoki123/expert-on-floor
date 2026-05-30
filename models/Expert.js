@@ -1,33 +1,83 @@
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
-import mongoose from 'mongoose';
-
-const expertSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  expertise: [{ type: String }],
-  yearsOfExperience: { type: Number },
-  certifications: [{
-    title: String,
-    issuer: String,
-    year: Number,
-    verificationUrl: String
-  }],
-  bio: { type: String },
-  hourlyRate: { type: Number },
-  projectRate: { type: Number },
-  availability: {
-    monday: [{ start: String, end: String }],
-    tuesday: [{ start: String, end: String }],
-    wednesday: [{ start: String, end: String }],
-    thursday: [{ start: String, end: String }],
-    friday: [{ start: String, end: String }],
-    saturday: [{ start: String, end: String }],
-    sunday: [{ start: String, end: String }]
+const Expert = sequelize.define('Expert', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
   },
-  verificationStatus: { type: String, enum: ['pending', 'verified', 'rejected'], default: 'pending' },
-  verificationDocuments: [{ type: String }],
-  avgRating: { type: Number, default: 0 },
-  totalReviews: { type: Number, default: 0 },
-  isFeatured: { type: Boolean, default: false }
-}, { timestamps: true });
+  userId: {
+    type: DataTypes.INTEGER,
+    unique: true,
+    allowNull: false
+  },
+  title: {
+    type: DataTypes.STRING(150),
+    allowNull: false
+  },
+  category: {
+    type: DataTypes.STRING(50),
+    allowNull: false
+  },
+  experienceYears: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  pricePerHour: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  isAvailable: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
+  },
+  skills: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: []
+  },
+  achievements: {
+    type: DataTypes.JSON,
+    allowNull: true,
+    defaultValue: []
+  },
+  bio: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  totalSessions: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  avgRating: {
+    type: DataTypes.DECIMAL(2, 1),
+    defaultValue: 0.0
+  },
+  totalReviews: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  availability: {
+    type: DataTypes.JSON,
+    allowNull: true
+  },
+  verificationStatus: {
+    type: DataTypes.ENUM('pending', 'verified', 'rejected'),
+    defaultValue: 'pending'
+  },
+  verificationDocuments: {
+    type: DataTypes.JSON,
+    allowNull: true
+  },
+  isFeatured: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  }
+}, {
+  tableName: 'expert_profiles',
+  timestamps: true,
+  underscored: true
+});
 
-export default mongoose.model('Expert', expertSchema);
+export default Expert;

@@ -1,38 +1,36 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
-const Review = sequelize.define('Review', {
+const Message = sequelize.define('Message', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
   },
-  bookingId: {
-    type: DataTypes.INTEGER,
-    unique: true,
-    allowNull: false
-  },
-  learnerId: {
+  conversationId: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  expertId: {
+  senderId: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  rating: {
-    type: DataTypes.TINYINT,
-    allowNull: false,
-    validate: { min: 1, max: 5 }
-  },
-  comment: {
+  text: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  type: {
+    type: DataTypes.ENUM('text', 'file', 'system'),
+    defaultValue: 'text'
+  },
+  isRead: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   }
 }, {
-  tableName: 'reviews',
+  tableName: 'messages',
   timestamps: true,
   underscored: true
 });
 
-export default Review;
+export default Message;

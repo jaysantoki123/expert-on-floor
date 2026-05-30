@@ -1,16 +1,56 @@
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
-import mongoose from 'mongoose';
+const Booking = sequelize.define('Booking', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  learnerId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  expertId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  sessionType: {
+    type: DataTypes.ENUM('chat', 'audio', 'video'),
+    allowNull: false
+  },
+  date: {
+    type: DataTypes.DATEONLY,
+    allowNull: false
+  },
+  timeSlot: {
+    type: DataTypes.TIME,
+    allowNull: false
+  },
+  durationMinutes: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  topic: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  status: {
+    type: DataTypes.ENUM('pending_payment', 'confirmed', 'completed', 'cancelled'),
+    defaultValue: 'pending_payment'
+  },
+  amount: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  razorpayOrderId: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  }
+}, {
+  tableName: 'bookings',
+  timestamps: true,
+  underscored: true
+});
 
-const bookingSchema = new mongoose.Schema({
-  clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  expertId: { type: mongoose.Schema.Types.ObjectId, ref: 'Expert', required: true },
-  serviceType: { type: String, required: true },
-  scheduledDate: { type: Date, required: true },
-  duration: { type: Number, required: true }, // in minutes
-  totalAmount: { type: Number, required: true },
-  status: { type: String, enum: ['pending', 'confirmed', 'completed', 'cancelled'], default: 'pending' },
-  notes: { type: String },
-  meetingLink: { type: String }
-}, { timestamps: true });
-
-export default mongoose.model('Booking', bookingSchema);
+export default Booking;

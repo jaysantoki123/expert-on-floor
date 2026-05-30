@@ -1,16 +1,54 @@
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
-import mongoose from 'mongoose';
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  name: {
+    type: DataTypes.STRING(100),
+    allowNull: false
+  },
+  email: {
+    type: DataTypes.STRING(150),
+    allowNull: false,
+    unique: true
+  },
+  phone: {
+    type: DataTypes.STRING(15),
+    allowNull: true
+  },
+  password: {
+    type: DataTypes.STRING(255),
+    allowNull: false
+  },
+  role: {
+    type: DataTypes.ENUM('learner', 'expert', 'admin'),
+    allowNull: false,
+    defaultValue: 'learner'
+  },
+  profileImage: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  isEmailVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  refreshToken: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  lastLogin: {
+    type: DataTypes.DATE,
+    allowNull: true
+  }
+}, {
+  tableName: 'users',
+  timestamps: true,
+  underscored: true
+});
 
-const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true, index: true },
-  password: { type: String, required: true },
-  fullName: { type: String, required: true },
-  role: { type: String, enum: ['client', 'expert', 'admin'], default: 'client' },
-  phone: { type: String },
-  profileImage: { type: String },
-  isEmailVerified: { type: Boolean, default: false },
-  isPhoneVerified: { type: Boolean, default: false },
-  lastLogin: { type: Date }
-}, { timestamps: true });
-
-export default mongoose.model('User', userSchema);
+export default User;

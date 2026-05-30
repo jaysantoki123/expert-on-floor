@@ -1,38 +1,32 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 
-const Review = sequelize.define('Review', {
+const Conversation = sequelize.define('Conversation', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
   },
-  bookingId: {
-    type: DataTypes.INTEGER,
-    unique: true,
-    allowNull: false
-  },
-  learnerId: {
+  participant1Id: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  expertId: {
+  participant2Id: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  rating: {
-    type: DataTypes.TINYINT,
-    allowNull: false,
-    validate: { min: 1, max: 5 }
-  },
-  comment: {
+  lastMessage: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  lastMessageAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   }
 }, {
-  tableName: 'reviews',
+  tableName: 'conversations',
   timestamps: true,
   underscored: true
 });
 
-export default Review;
+export default Conversation;

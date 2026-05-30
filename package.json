@@ -19,6 +19,7 @@
   "description": "Digital marketplace connecting industrial businesses with specialized shop-floor experts.",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -27,6 +28,10 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.3",
     "multer": "^2.1.0",
-    "nodemailer": "^7.0.12"
+    "mysql2": "^3.22.4",
+    "nodemailer": "^7.0.12",
+    "sequelize": "^6.37.8",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1"
   }
 }
