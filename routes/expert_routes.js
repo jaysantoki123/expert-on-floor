@@ -1,5 +1,5 @@
 import express from 'express';
-import { getExperts, getExpertById, updateExpertProfile, getExpertReviews, submitReview, registerExpert, getExpertAvailability, updateExpertAvailability } from '../controllers/expert_controller.js';
+import { getExperts, getExpertById, updateExpertProfile, getExpertReviews, submitReview, registerExpert, getExpertAvailability, updateExpertAvailability, getExpertDashboard } from '../controllers/expert_controller.js';
 import { authMiddleware, roleMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -9,6 +9,26 @@ const router = express.Router();
  * tags:
  *   - name: Experts
  *     description: Expert profiles, search, reviews & availability
+ *
+ * /experts/dashboard:
+ *   get:
+ *     summary: Get expert dashboard aggregated data
+ *     tags: [Experts]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard data including earnings, sessions, and reviews
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               data:
+ *                 totalEarnings: 15000
+ *                 upcomingSessions: 3
+ *                 completedSessions: 12
+ *                 avgRating: 4.8
+ *                 totalReviews: 24
  *
  * /experts:
  *   get:
@@ -304,6 +324,7 @@ const router = express.Router();
 router.get('/', getExperts);
 router.get('/top-rated', getExperts);
 router.get('/categories', (req, res) => res.json({ success: true, data: ['Technology', 'Manufacturing', 'Logistics', 'Quality Control', 'Safety'] }));
+router.get('/dashboard', authMiddleware, roleMiddleware(['expert']), getExpertDashboard);
 router.get('/:id', getExpertById);
 router.get('/:id/reviews', getExpertReviews);
 router.get('/:id/availability', getExpertAvailability);

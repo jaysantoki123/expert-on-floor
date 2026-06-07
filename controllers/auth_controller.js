@@ -1,6 +1,9 @@
 import { User } from '../models/index.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const generateTokens = (user) => {
   const accessToken = jwt.sign(
@@ -79,6 +82,51 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const googleLogin = async (req, res) => {
+  try {
+    const { token, role } = req.body; // Token from Google, role optional for new users
+    if (!token) return res.status(400).json({ success: false, message: 'Token required' });
+
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+
+    let user = await User.findOne({ where: { email } });
+    
+    if (!user) {
+      // Create new user if not exists
+      user = await User.create({
+        email,
+        name,
+        role: role || 'learner',
+        profileImage: picture,
+        password: await bcrypt.hash(Math.random().toString(36).slice(-8), 10), // Random password
+        isEmailVerified: true
+      });
+    }
+
+    const { accessToken, refreshToken } = generateTokens(user);
+
+    user.refreshToken = refreshToken;
+    user.lastLogin = new Date();
+    await user.save();
+
+    res.json({
+      success: true,
+      data: {
+        user: { id: user.id, name: user.name, role: user.role, profileImage: user.profileImage },
+        token: accessToken,
+        refreshToken
+      }
+    });
+  } catch (error) {
+    res.status(401).json({ success: false, message: 'Invalid Google token', error: error.message });
   }
 };
 

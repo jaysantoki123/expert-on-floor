@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login, logout, refreshToken, forgotPassword, resetPassword, getMe, updateMe } from '../controllers/auth_controller.js';
+import { register, login, googleLogin, logout, refreshToken, forgotPassword, resetPassword, getMe, updateMe } from '../controllers/auth_controller.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -85,6 +85,39 @@ const router = express.Router();
  *                 refreshToken: eyJhbGci...
  *       401:
  *         description: Invalid credentials
+ *
+ * /auth/google:
+ *   post:
+ *     summary: Login or register with Google ID token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token]
+ *             properties:
+ *               token:
+ *                 type: string
+ *                 description: The ID token from Google
+ *               role:
+ *                 type: string
+ *                 enum: [learner, expert]
+ *                 description: Role to assign if user is new
+ *     responses:
+ *       200:
+ *         description: Google login successful
+ *         content:
+ *           application/json:
+ *             example:
+ *               success: true
+ *               data:
+ *                 user: { id: 1, name: Rohan Kumar, role: learner, profileImage: "https://..." }
+ *                 token: eyJhbGci...
+ *                 refreshToken: eyJhbGci...
+ *       401:
+ *         description: Invalid Google token
  *
  * /auth/logout:
  *   post:
@@ -209,6 +242,7 @@ const router = express.Router();
 
 router.post('/register', register);
 router.post('/login', login);
+router.post('/google', googleLogin);
 router.post('/logout', authMiddleware, logout);
 router.post('/refresh-token', refreshToken);
 router.post('/forgot-password', forgotPassword);

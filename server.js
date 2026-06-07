@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 
 import authRoutes from './routes/auth_routes.js';
 import expertRoutes from './routes/expert_routes.js';
+import clientRoutes from './routes/client_routes.js';
 import bookingRoutes from './routes/booking_routes.js';
 import communityRoutes from './routes/community_routes.js';
 import paymentRoutes from './routes/payment_routes.js';
@@ -38,6 +39,7 @@ const swaggerSpec = {
   tags: [
     { name: 'Auth', description: 'Authentication & session management' },
     { name: 'Users', description: 'User profile management' },
+    { name: 'Clients', description: 'Client & Learner dashboards and actions' },
     { name: 'Experts', description: 'Expert profiles, search, reviews & availability' },
     { name: 'Bookings', description: 'Session booking management' },
     { name: 'Chat', description: 'Conversations & messaging (REST + Socket.io)' },
@@ -99,6 +101,31 @@ const swaggerSpec = {
         responses: {
           200: { description: 'Login successful, returns token + refreshToken' },
           401: { description: 'Invalid credentials' },
+        },
+      },
+    },
+    '/auth/google': {
+      post: {
+        tags: ['Auth'],
+        summary: 'Login or register with Google ID token',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['token'],
+                properties: {
+                  token: { type: 'string', description: 'The ID token from Google' },
+                  role: { type: 'string', enum: ['learner', 'expert'], description: 'Role to assign if user is new' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          200: { description: 'Google login successful, returns user data and tokens' },
+          401: { description: 'Invalid Google token' },
         },
       },
     },
@@ -212,7 +239,224 @@ const swaggerSpec = {
       },
     },
 
+    // ── CLIENTS ───────────────────────────────
+    '/clients/contact': {
+      post: {
+        tags: ['Clients'],
+        summary: 'Submit a contact form',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name', 'email', 'message'],
+                properties: {
+                  name: { type: 'string' },
+                  email: { type: 'string' },
+                  phone: { type: 'string' },
+                  subject: { type: 'string' },
+                  message: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        responses: { 201: { description: 'Contact submitted' } }
+      }
+    },
+    '/clients/dashboard': {
+      get: {
+        tags: ['Clients'],
+        summary: 'Get aggregated Learner Dashboard data',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Dashboard data (upcoming sessions, roadmaps, unread notifications, recent mentors)',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: {
+                    upcomingSessions: [],
+                    roadmaps: [],
+                    unreadNotificationsCount: 0,
+                    recentMentors: []
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/clients/bookings': {
+      post: {
+        tags: ['Clients'],
+        summary: 'Create a new booking request',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['expertId', 'serviceType', 'scheduledDate', 'duration', 'totalAmount'],
+                properties: {
+                  expertId: { type: 'integer' },
+                  serviceType: { type: 'string' },
+                  scheduledDate: { type: 'string', format: 'date-time' },
+                  duration: { type: 'integer' },
+                  totalAmount: { type: 'number' },
+                  notes: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        responses: { 201: { description: 'Booking created' } }
+      },
+      get: {
+        tags: ['Clients'],
+        summary: 'Get all user bookings (learner or expert)',
+        security: [{ bearerAuth: [] }],
+        responses: { 200: { description: 'List of bookings' } }
+      }
+    },
+    '/clients/bookings/{id}': {
+      get: {
+        tags: ['Clients'],
+        summary: 'Get single booking details',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: { 200: { description: 'Booking details' } }
+      },
+      put: {
+        tags: ['Clients'],
+        summary: 'Update a booking (reschedule, cancel)',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  scheduledDate: { type: 'string', format: 'date-time' },
+                  status: { type: 'string' },
+                  notes: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        responses: { 200: { description: 'Booking updated' } }
+      }
+    },
+    '/clients/bookings/{id}/confirm': {
+      post: {
+        tags: ['Clients'],
+        summary: 'Confirm a booking after payment',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: { 200: { description: 'Booking confirmed' } }
+      }
+    },
+    '/clients/bookings/{id}/complete': {
+      post: {
+        tags: ['Clients'],
+        summary: 'Mark a booking as completed',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: { 200: { description: 'Booking completed' } }
+      }
+    },
+    '/clients/bookings/{id}/cancel': {
+      post: {
+        tags: ['Clients'],
+        summary: 'Cancel a booking with a reason',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        requestBody: {
+          content: {
+            'application/json': {
+              schema: { type: 'object', properties: { reason: { type: 'string' } } }
+            }
+          }
+        },
+        responses: { 200: { description: 'Booking cancelled' } }
+      }
+    },
+    '/clients/bookings/{id}/meeting-link': {
+      get: {
+        tags: ['Clients'],
+        summary: 'Get Zoom/Google Meet link for a booking',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ in: 'path', name: 'id', required: true, schema: { type: 'integer' } }],
+        responses: { 200: { description: 'Meeting link' } }
+      }
+    },
+    '/clients/payments': {
+      get: {
+        tags: ['Clients'],
+        summary: 'List user payments',
+        security: [{ bearerAuth: [] }],
+        responses: { 200: { description: 'User payments' } }
+      }
+    },
+    '/clients/reviews': {
+      post: {
+        tags: ['Clients'],
+        summary: 'Create a review for an expert',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['bookingId', 'expertId', 'rating'],
+                properties: {
+                  bookingId: { type: 'integer' },
+                  expertId: { type: 'integer' },
+                  rating: { type: 'number', format: 'float' },
+                  comment: { type: 'string' }
+                }
+              }
+            }
+          }
+        },
+        responses: { 201: { description: 'Review created' } }
+      }
+    },
+
     // ── EXPERTS ───────────────────────────────
+    '/experts/dashboard': {
+      get: {
+        tags: ['Experts'],
+        summary: 'Get expert dashboard aggregated data',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Dashboard data including earnings, sessions, and reviews',
+            content: {
+              'application/json': {
+                example: {
+                  success: true,
+                  data: {
+                    totalEarnings: 15000,
+                    upcomingSessions: 3,
+                    completedSessions: 12,
+                    avgRating: 4.8,
+                    totalReviews: 24
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     '/experts': {
       get: {
         tags: ['Experts'],
@@ -792,6 +1036,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 // API v1 Routes
 app.use('/v1/auth', authRoutes);
 app.use('/v1/users', authRoutes);
+app.use('/v1/clients', clientRoutes);
 app.use('/v1/experts', expertRoutes);
 app.use('/v1/bookings', bookingRoutes);
 app.use('/v1/community', communityRoutes);

@@ -1,6 +1,6 @@
 
 import express from 'express';
-import { createBooking, getBookingDetails, getUserBookings, updateBooking, confirmBooking, completeBooking, cancelBooking, getMeetingLink, getUserPayments, createReview, submitContact } from '../controllers/client_controller.js';
+import { createBooking, getBookingDetails, getUserBookings, updateBooking, confirmBooking, completeBooking, cancelBooking, getMeetingLink, getUserPayments, createReview, submitContact, getLearnerDashboard } from '../controllers/client_controller.js';
 import { authMiddleware, roleMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -10,6 +10,8 @@ router.post('/contact', submitContact);
 
 // Protected routes (auth required)
 router.use(authMiddleware);
+
+router.get('/dashboard', getLearnerDashboard);
 
 router.post('/bookings', roleMiddleware(['client']), createBooking);
 router.get('/bookings/:id', getBookingDetails);

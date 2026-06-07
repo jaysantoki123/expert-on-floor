@@ -1,4 +1,4 @@
-import { Expert, User, Review } from '../models/index.js';
+import { Expert, User, Review, Booking, Payment } from '../models/index.js';
 import { Op } from 'sequelize';
 
 export const getExperts = async (req, res) => {
@@ -171,5 +171,58 @@ export const updateExpertAvailability = async (req, res) => {
     res.json({ success: true, message: 'Availability updated', data: expert.availability });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+export const getExpertDashboard = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const expert = await Expert.findOne({ where: { userId } });
+    
+    if (!expert) return res.status(404).json({ success: false, message: 'Expert profile not found' });
+
+    // Earnings
+    const payments = await Payment.findAll({
+      where: { status: 'completed' },
+      include: [{
+        model: Booking,
+        as: 'booking',
+        where: { expertId: userId }
+      }]
+    });
+    
+    const totalEarnings = payments.reduce((acc, curr) => acc + parseFloat(curr.amount || 0), 0);
+
+    // Sessions
+    const upcomingSessions = await Booking.count({
+      where: { expertId: userId, status: ['pending_payment', 'confirmed'] }
+    });
+    
+    const completedSessions = await Booking.count({
+      where: { expertId: userId, status: 'completed' }
+    });
+
+    // Recent Reviews
+    const recentReviews = await Review.findAll({
+      where: { expertId: userId },
+      include: [{ model: User, as: 'learner', attributes: ['name', 'profileImage'] }],
+      order: [['createdAt', 'DESC']],
+      limit: 5
+    });
+
+    res.json({
+      success: true,
+      data: {
+        totalEarnings,
+        upcomingSessions,
+        completedSessions,
+        avgRating: expert.avgRating || 0,
+        totalReviews: expert.totalReviews || 0,
+        recentReviews,
+        availability: expert.availability
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

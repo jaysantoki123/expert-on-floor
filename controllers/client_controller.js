@@ -1,11 +1,5 @@
-
-import Booking from '../models/Booking.js';
-import User from '../models/User.js';
-import Review from '../models/Review.js';
-import Payment from '../models/Payment.js';
+import { Booking, User, Review, Payment, Expert, Roadmap, Notification } from '../models/index.js';
 import Contact from '../models/Contact.js';
-import Expert from '../models/Expert.js';
-
 // POST /bookings - Create new booking request
 export const createBooking = async (req, res) => {
   try {
@@ -175,5 +169,65 @@ export const submitContact = async (req, res) => {
     res.status(201).json(newContact);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+};
+
+// GET /dashboard - Aggregated Learner Dashboard
+export const getLearnerDashboard = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Upcoming Sessions
+    const upcomingSessions = await Booking.findAll({
+      where: { learnerId: userId, status: ['pending_payment', 'confirmed'] },
+      include: [{ model: User, as: 'expert', attributes: ['name', 'profileImage'] }],
+      order: [['date', 'ASC']],
+      limit: 5
+    });
+
+    // Roadmap Progress
+    const roadmaps = await Roadmap.findAll({
+      where: { userId },
+      order: [['createdAt', 'DESC']],
+      limit: 2
+    });
+
+    // Unread Notifications
+    const unreadNotificationsCount = await Notification.count({
+      where: { userId, isRead: false }
+    });
+
+    // Recent Mentors
+    const recentMentorsBookings = await Booking.findAll({
+      where: { learnerId: userId, status: 'completed' },
+      include: [{ model: User, as: 'expert', attributes: ['name', 'profileImage'] }],
+      order: [['date', 'DESC']],
+      limit: 5
+    });
+
+    // Deduplicate mentors
+    const recentMentorsMap = new Map();
+    recentMentorsBookings.forEach(booking => {
+      if (booking.expert && !recentMentorsMap.has(booking.expertId)) {
+        recentMentorsMap.set(booking.expertId, {
+          id: booking.expertId,
+          name: booking.expert.name,
+          profileImage: booking.expert.profileImage
+        });
+      }
+    });
+    const recentMentors = Array.from(recentMentorsMap.values());
+
+    res.json({
+      success: true,
+      data: {
+        upcomingSessions,
+        roadmaps,
+        unreadNotificationsCount,
+        recentMentors
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
