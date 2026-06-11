@@ -531,6 +531,5 @@ This project is licensed under the **ISC License**.
 
 ---
 
-<p align="center">Made with ❤️ by the Expert on Floor Team</p>
-#   e x p e r t - o n - f l o o r  
+<p align="center">Made with ❤️ by the Expert on Floor Team</p>  #   e x p e r t - o n - f l o o r  
  
