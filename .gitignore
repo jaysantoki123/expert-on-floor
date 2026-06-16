@@ -1,0 +1,52 @@
+# ─── Node.js / Backend ───────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+*.log
+logs/
+dist/
+
+# Environment variables (NEVER commit)
+.env
+
+# Uploads
+uploads/
+
+# ─── Flutter / Dart ───────────────────────────────────────────────────────────
+*.class
+*.pyc
+*.swp
+.DS_Store
+Thumbs.db
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+expert-on-floor-main/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication / Obfuscation
+app.*.symbols
+app.*.map.json
+
+# Android Studio build artifacts
+/android/app/debug
+/android/app/profile
+/android/app/release
