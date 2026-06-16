@@ -1,173 +1,162 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
-import '../../models/expert_model.dart' as model;
+import '../../models/expert_model.dart';
 import '../../providers/expert_provider.dart';
 import 'expert_profile_screen.dart';
-
-// ══════════════════════════════════════════════════════════════════
-// Data Model
-// ══════════════════════════════════════════════════════════════════
-class ExpertModel {
-  final String id;
-  final String name;
-  final String title;
-  final String company;
-  final double rating;
-  final int reviews;
-  final int pricePerHour;
-  final List<String> skills;
-  final String availability;
-  final Color avatarColor;
-  final bool isOnline;
-  final String experience;
-  final String bio;
-
-  const ExpertModel({
-    required this.id,
-    required this.name,
-    required this.title,
-    required this.company,
-    required this.rating,
-    required this.reviews,
-    required this.pricePerHour,
-    required this.skills,
-    required this.availability,
-    required this.avatarColor,
-    required this.isOnline,
-    required this.experience,
-    required this.bio,
-  });
-}
 
 final List<ExpertModel> dummyExperts = [
   ExpertModel(
     id: '1',
     name: 'Rahul Sharma',
-    title: 'Senior Flutter Developer',
-    company: 'Google',
+    role: 'Senior Flutter Developer',
+    profileImage: null,
+    experience: '8+ years',
     rating: 4.9,
-    reviews: 340,
-    pricePerHour: 999,
+    price: 999,
     skills: ['Flutter', 'Dart', 'Firebase', 'UI/UX'],
-    availability: 'Available Today',
+    bio: 'Ex-Google engineer with 8+ years of experience in Flutter and Mobile Development.',
     avatarColor: const Color(0xFF5C6BC0),
     isOnline: true,
-    experience: '8+ years',
-    bio:
-        'Ex-Google engineer with 8+ years of experience in Flutter and Mobile Development.',
+    title: 'Senior Flutter Developer',
+    company: 'Google',
+    reviews: 340,
+    pricePerHour: 999,
+    location: 'San Francisco, CA',
+    services: ['1:1 Session', 'Code Review', 'Project Consultation'],
   ),
   ExpertModel(
     id: '2',
     name: 'Amit Verma',
-    title: 'Full Stack Developer',
-    company: 'Microsoft',
+    role: 'Full Stack Developer',
+    profileImage: null,
+    experience: '6+ years',
     rating: 4.8,
-    reviews: 210,
-    pricePerHour: 799,
+    price: 799,
     skills: ['React', 'Node.js', 'MongoDB', 'AWS'],
-    availability: 'Available',
+    bio: 'Full stack developer with expertise in modern web technologies and cloud platforms.',
     avatarColor: const Color(0xFF26A69A),
     isOnline: true,
-    experience: '6+ years',
-    bio:
-        'Full stack developer with expertise in modern web technologies and cloud platforms.',
+    title: 'Full Stack Developer',
+    company: 'Microsoft',
+    reviews: 210,
+    pricePerHour: 799,
+    location: 'Seattle, WA',
+    services: ['1:1 Session', 'Architecture Design', 'Code Review'],
   ),
   ExpertModel(
     id: '3',
     name: 'Sneha Iyer',
-    title: 'UI/UX Designer',
-    company: 'Figma',
+    role: 'UI/UX Designer',
+    profileImage: null,
+    experience: '5+ years',
     rating: 4.7,
-    reviews: 180,
-    pricePerHour: 799,
+    price: 799,
     skills: ['Figma', 'Adobe XD', 'Prototyping', 'Design Systems'],
-    availability: 'Busy Today',
+    bio: 'Creative UI/UX designer specializing in user-centered design and design systems.',
     avatarColor: const Color(0xFFEC407A),
     isOnline: false,
-    experience: '5+ years',
-    bio:
-        'Creative UI/UX designer specializing in user-centered design and design systems.',
+    title: 'UI/UX Designer',
+    company: 'Figma',
+    reviews: 180,
+    pricePerHour: 799,
+    location: 'New York, NY',
+    services: ['Design Review', 'UI Design', 'Design System Help'],
   ),
   ExpertModel(
     id: '4',
     name: 'Vikram Patel',
-    title: 'AI/ML Engineer',
-    company: 'Amazon',
+    role: 'AI/ML Engineer',
+    profileImage: null,
+    experience: '7+ years',
     rating: 4.6,
-    reviews: 150,
-    pricePerHour: 1199,
+    price: 1199,
     skills: ['Python', 'TensorFlow', 'PyTorch', 'NLP'],
-    availability: 'Available',
+    bio: 'AI/ML engineer with deep expertise in deep learning, NLP, and production ML systems.',
     avatarColor: const Color(0xFFFF7043),
     isOnline: true,
-    experience: '7+ years',
-    bio:
-        'AI/ML engineer with deep expertise in deep learning, NLP, and production ML systems.',
+    title: 'AI/ML Engineer',
+    company: 'Amazon',
+    reviews: 150,
+    pricePerHour: 1199,
+    location: 'Austin, TX',
+    services: ['1:1 Session', 'Model Review', 'ML System Design'],
   ),
   ExpertModel(
     id: '5',
     name: 'Priya Nair',
-    title: 'Data Scientist',
-    company: 'Netflix',
+    role: 'Data Scientist',
+    profileImage: null,
+    experience: '5+ years',
     rating: 4.8,
-    reviews: 195,
-    pricePerHour: 899,
+    price: 899,
     skills: ['Python', 'R', 'Tableau', 'SQL'],
-    availability: 'Available Today',
+    bio: 'Data scientist helping businesses unlock insights from complex datasets.',
     avatarColor: const Color(0xFF7E57C2),
     isOnline: true,
-    experience: '5+ years',
-    bio:
-        'Data scientist helping businesses unlock insights from complex datasets.',
+    title: 'Data Scientist',
+    company: 'Netflix',
+    reviews: 195,
+    pricePerHour: 899,
+    location: 'Los Gatos, CA',
+    services: ['1:1 Session', 'Data Analysis', 'Dashboard Design'],
   ),
   ExpertModel(
     id: '6',
     name: 'Arjun Mehta',
-    title: 'DevOps Engineer',
-    company: 'Flipkart',
+    role: 'DevOps Engineer',
+    profileImage: null,
+    experience: '4+ years',
     rating: 4.5,
-    reviews: 120,
-    pricePerHour: 699,
+    price: 699,
     skills: ['Docker', 'Kubernetes', 'CI/CD', 'AWS'],
-    availability: 'Available',
+    bio: 'DevOps specialist with expertise in containerization and cloud infrastructure.',
     avatarColor: const Color(0xFF29B6F6),
     isOnline: false,
-    experience: '4+ years',
-    bio:
-        'DevOps specialist with expertise in containerization and cloud infrastructure.',
+    title: 'DevOps Engineer',
+    company: 'Flipkart',
+    reviews: 120,
+    pricePerHour: 699,
+    location: 'Bangalore, India',
+    services: ['1:1 Session', 'Infrastructure Review', 'CI/CD Setup'],
   ),
   ExpertModel(
     id: '7',
     name: 'Kavya Reddy',
-    title: 'iOS Developer',
-    company: 'Apple',
+    role: 'iOS Developer',
+    profileImage: null,
+    experience: '6+ years',
     rating: 4.9,
-    reviews: 260,
-    pricePerHour: 1099,
+    price: 1099,
     skills: ['Swift', 'SwiftUI', 'Xcode', 'CoreData'],
-    availability: 'Available',
+    bio: 'iOS developer with deep expertise in SwiftUI and modern Apple platforms.',
     avatarColor: const Color(0xFF66BB6A),
     isOnline: true,
-    experience: '6+ years',
-    bio:
-        'iOS developer with a passion for building elegant and performant Apple ecosystem apps.',
+    title: 'iOS Developer',
+    company: 'Apple',
+    reviews: 260,
+    pricePerHour: 1099,
+    location: 'Cupertino, CA',
+    services: ['1:1 Session', 'Code Review', 'App Architecture'],
   ),
   ExpertModel(
     id: '8',
     name: 'Rohan Gupta',
-    title: 'Blockchain Developer',
-    company: 'Coinbase',
+    role: 'Blockchain Developer',
+    profileImage: null,
+    experience: '4+ years',
     rating: 4.6,
-    reviews: 98,
-    pricePerHour: 1299,
+    price: 1299,
     skills: ['Solidity', 'Web3.js', 'Ethereum', 'Smart Contracts'],
-    availability: 'Busy Today',
+    bio: 'Blockchain developer building decentralized applications and smart contracts.',
     avatarColor: const Color(0xFFFFA726),
     isOnline: false,
-    experience: '4+ years',
-    bio:
-        'Blockchain developer building decentralized applications and smart contracts.',
+    title: 'Blockchain Developer',
+    company: 'Coinbase',
+    reviews: 98,
+    pricePerHour: 1299,
+    location: 'San Francisco, CA',
+    services: ['1:1 Session', 'Smart Contract Review', 'Web3 Help'],
   ),
 ];
 
@@ -225,7 +214,7 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
     _searchCtrl.addListener(
       () => setState(() => _searchQuery = _searchCtrl.text),
     );
-    
+
     // Fetch experts from API
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ExpertProvider>().fetchExperts();
@@ -240,11 +229,11 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
   }
 
   // ── Filter + Search ────────────────────────────────────────────
-  List<model.ExpertModel> get _filteredExperts {
+  List<ExpertModel> get _filteredExperts {
     final provider = context.read<ExpertProvider>();
-    List<model.ExpertModel> result = List.from(provider.experts);
+    List<ExpertModel> result = List.from(provider.experts);
 
-    // Search
+    
     if (_searchQuery.isNotEmpty) {
       result = result.where((e) {
         return e.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -284,99 +273,118 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Top Bar ──────────────────────────────────
-            _buildTopBar(),
-            const SizedBox(height: 12),
-            _buildSummaryCard(),
-
-            // ── Search Bar ───────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-              child: _buildSearchBar(),
-            ),
-
-            // ── Filter Chips ─────────────────────────────
-            _buildFilterRow(),
-            const SizedBox(height: 4),
-
-            // ── Results count ────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-              child: Row(
-                children: [
-                  Text(
-                    '${experts.length} experts found',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.muted,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const Spacer(),
-                  // Sort button
-                  GestureDetector(
-                    onTap: _showSortSheet,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primarySoft,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.line),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.sort_rounded,
-                            size: 14,
-                            color: AppColors.primary,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _sortBy,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+        child: RefreshIndicator(
+          onRefresh: () => provider.fetchExperts(forceRefresh: true),
+          color: AppColors.primary,
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // ── Search Bar (TOP) ─────────────────────────
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                sliver: SliverToBoxAdapter(child: _buildSearchBar()),
               ),
-            ),
 
-            // ── Expert List ──────────────────────────────
-            Expanded(
-              child: provider.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : provider.error != null
-                      ? _buildErrorState(provider.error!)
-                      : experts.isEmpty
-                          ? _buildEmptyState()
-                          : RefreshIndicator(
-                              onRefresh: () => provider.fetchExperts(forceRefresh: true),
-                              color: AppColors.primary,
-                              child: ListView.separated(
-                                padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                itemCount: experts.length,
-                                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                                itemBuilder: (_, i) => _ExpertCard(
-                                  expert: experts[i],
-                                  onTap: () => _openProfile(experts[i]),
+              // ── Top Bar ──────────────────────────────────
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverToBoxAdapter(child: _buildTopBar()),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 12)),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverToBoxAdapter(child: _buildSummaryCard()),
+              ),
+
+              // ── Filter Chips ─────────────────────────────
+              const SliverToBoxAdapter(child: SizedBox(height: 16)),
+              SliverToBoxAdapter(child: _buildFilterRow()),
+              const SliverToBoxAdapter(child: SizedBox(height: 4)),
+
+              // ── Results count ────────────────────────────
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                sliver: SliverToBoxAdapter(
+                  child: Row(
+                    children: [
+                      Text(
+                        '${experts.length} experts found',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.muted,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const Spacer(),
+                      // Sort button
+                      GestureDetector(
+                        onTap: _showSortSheet,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primarySoft,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: AppColors.line),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.sort_rounded,
+                                size: 14,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _sortBy,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ),
-            ),
-          ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ── Expert List ──────────────────────────────
+              if (provider.isLoading)
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (provider.error != null)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _buildErrorState(provider.error!),
+                )
+              else if (experts.isEmpty)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _buildEmptyState(),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                  sliver: SliverList.separated(
+                    itemCount: experts.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (_, i) => _ExpertCard(
+                      expert: experts[i],
+                      onTap: () => _openProfile(experts[i]),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -433,7 +441,7 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
 
   Widget _buildSummaryCard() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.fromLTRB(2, 0, 2, 0),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(20),
@@ -470,11 +478,12 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
             ),
             const SizedBox(height: 14),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildStatBadge('Average rating', '4.8'),
-                _buildStatBadge('Fast response', '92%'),
-                _buildStatBadge('Verified experts', '80+'),
+                Expanded(child: _buildStatBadge('Average rating', '4.8')),
+                const SizedBox(width: 10),
+                Expanded(child: _buildStatBadge('Fast response', '92%')),
+                const SizedBox(width: 10),
+                Expanded(child: _buildStatBadge('Verified experts', '80+')),
               ],
             ),
             const SizedBox(height: 16),
@@ -493,42 +502,40 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
   }
 
   Widget _buildStatBadge(String label, String value) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppColors.ink,
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ink,
-              ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.muted,
+              height: 1.4,
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11,
-                color: AppColors.muted,
-                height: 1.4,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -572,10 +579,14 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
               decoration: InputDecoration(
                 hintText: 'Search experts...',
                 hintStyle: TextStyle(
-                      color: AppColors.muted.withValues(alpha: 0.7),
+                  color: AppColors.muted.withValues(alpha: 0.7),
                   fontSize: 14,
                 ),
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
@@ -610,62 +621,70 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
 
   // ── Filter Row ─────────────────────────────────────────────────
   Widget _buildFilterRow() {
-    return SizedBox(
-      height: 38,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        children: [
-          // Category Dropdown
-          _DropdownChip(
-            label: 'Category',
-            value: _selectedCategory,
-            items: _categories,
-            onSelected: (v) => setState(() => _selectedCategory = v),
-          ),
-          const SizedBox(width: 10),
-
-          // Skills Dropdown
-          _DropdownChip(
-            label: 'Skills',
-            value: _selectedSkill,
-            items: _skills,
-            onSelected: (v) => setState(() => _selectedSkill = v),
-          ),
-          const SizedBox(width: 10),
-
-          // Filters chip
-          GestureDetector(
-            onTap: _showFilterSheet,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.field,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.line),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.filter_list_rounded,
-                    size: 15,
-                    color: AppColors.muted,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    'Filters',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.muted,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: SizedBox(
+        height: 38,
+        child: Row(
+          children: [
+            // Category Dropdown
+            Expanded(
+              child: _DropdownChip(
+                label: 'Category',
+                value: _selectedCategory,
+                items: _categories,
+                onSelected: (v) => setState(() => _selectedCategory = v),
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 10),
+
+            // Skills Dropdown
+            Expanded(
+              child: _DropdownChip(
+                label: 'Skills',
+                value: _selectedSkill,
+                items: _skills,
+                onSelected: (v) => setState(() => _selectedSkill = v),
+              ),
+            ),
+            const SizedBox(width: 10),
+
+            // Filters chip
+            Expanded(
+              child: GestureDetector(
+                onTap: _showFilterSheet,
+                child: Container(
+                  height: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.field,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.line),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.filter_list_rounded,
+                        size: 15,
+                        color: AppColors.muted,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        'Filters',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.muted,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -700,8 +719,9 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () =>
-                  context.read<ExpertProvider>().fetchExperts(forceRefresh: true),
+              onPressed: () => context.read<ExpertProvider>().fetchExperts(
+                forceRefresh: true,
+              ),
               child: const Text('Retry'),
             ),
           ],
@@ -824,7 +844,7 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
     );
   }
 
-  void _openProfile(model.ExpertModel expert) {
+  void _openProfile(ExpertModel expert) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => ExpertProfileScreen(expert: expert)),
     );
@@ -932,6 +952,7 @@ class _DropdownChip extends StatelessWidget {
           ),
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               isActive ? value : label,
@@ -1170,7 +1191,7 @@ class _FilterSheetState extends State<_FilterSheet> {
 // Expert Card
 // ══════════════════════════════════════════════════════════════════
 class _ExpertCard extends StatelessWidget {
-  final model.ExpertModel expert;
+  final ExpertModel expert;
   final VoidCallback onTap;
 
   const _ExpertCard({required this.expert, required this.onTap});
@@ -1397,7 +1418,10 @@ class _ExpertCard extends StatelessWidget {
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   child: const Text(
                     'Book',
                     style: TextStyle(
