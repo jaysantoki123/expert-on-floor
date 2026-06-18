@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import 'roadmap_phase_detail_screen.dart';
 
 class MyRoadmapScreen extends StatefulWidget {
   const MyRoadmapScreen({super.key});
@@ -491,6 +492,42 @@ class _MyRoadmapScreenState extends State<MyRoadmapScreen>
                                         ),
                                       ),
                                     ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 38,
+                                    child: OutlinedButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => RoadmapPhaseDetailScreen(
+                                              phaseNumber: i + 1,
+                                              title: step.title,
+                                              description: step.description,
+                                              duration: step.duration,
+                                              level: 'Intermediate', // Default or derived
+                                              progress: step.status == 'completed' ? 1.0 : (step.status == 'in_progress' ? 0.25 : 0.0),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(color: AppColors.primary),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'View Phase Details',
+                                        style: TextStyle(
+                                          color: AppColors.primary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                   if (step.status == 'in_progress') ...[
                                     const SizedBox(height: 12),
