@@ -2,6 +2,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import 'expert_listing_screen.dart';
+import 'profile_screen.dart';
+import 'community_screen.dart';
+import 'my_roadmap_screen.dart';
+import 'genrate_roadmap_screen.dart';
+import 'roadmap_phase_detail_screen.dart';
 
 class LearnerDashboardScreen extends StatefulWidget {
   const LearnerDashboardScreen({super.key});
@@ -11,22 +16,34 @@ class LearnerDashboardScreen extends StatefulWidget {
 }
 
 class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
+  // Use late final for tab widgets to preserve state
+  late final List<Widget> _tabs;
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    _DashboardTab(),
-    _ExpertsTab(),
-    _CommunityTab(),
-    _ProfileTab(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Initialize tabs once in initState to preserve state
+    _tabs = const [
+      _DashboardTab(),
+      _ExpertsTab(),
+      _CommunityTab(),
+      ProfileScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
       backgroundColor: AppColors.white,
-      body: _pages[_currentIndex],
+      // Use IndexedStack to preserve tab state
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _tabs,
+      ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'dashboard_fab',
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const AiAssistantScreen()),
@@ -60,6 +77,7 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
     );
   }
 
+  // Extract bottom nav to separate widget with const constructor
   Widget _buildBottomNav() {
     final bottomInset = MediaQuery.of(context).viewPadding.bottom;
     return Padding(
@@ -103,7 +121,7 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
                       label: 'Home',
                       index: 0,
                       currentIndex: _currentIndex,
-                      onTap: (i) => setState(() => _currentIndex = i),
+                      onTap: _onTabTapped,
                     ),
                     _NavItem(
                       icon: Icons.school_outlined,
@@ -111,16 +129,18 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
                       label: 'Experts',
                       index: 1,
                       currentIndex: _currentIndex,
-                      onTap: (i) => setState(() => _currentIndex = i),
+                      onTap: _onTabTapped,
                     ),
-                    const SizedBox(width: 56), // gap for center FAB
+                    const SizedBox(width: 56),
                     _NavItem(
                       icon: Icons.people_outline_rounded,
                       activeIcon: Icons.people_rounded,
                       label: 'Community',
                       index: 2,
                       currentIndex: _currentIndex,
-                      onTap: (i) => setState(() => _currentIndex = i),
+                      onTap: (int index) => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const CommunityScreen()),
+                      ),
                     ),
                     _NavItem(
                       icon: Icons.person_outline_rounded,
@@ -128,7 +148,9 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
                       label: 'Profile',
                       index: 3,
                       currentIndex: _currentIndex,
-                      onTap: (i) => setState(() => _currentIndex = i),
+                      onTap: (int index) => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                      ),
                     ),
                   ],
                 ),
@@ -139,10 +161,15 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
       ),
     );
   }
+
+  void _onTabTapped(int index) {
+    if (index != _currentIndex) {
+      setState(() => _currentIndex = index);
+    }
+  }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Nav Item
+// Make _NavItem const constructor for performance
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final IconData activeIcon;
@@ -207,9 +234,6 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Dashboard Tab
-// ══════════════════════════════════════════════════════════════════
 class _DashboardTab extends StatefulWidget {
   const _DashboardTab();
 
@@ -256,8 +280,6 @@ class _DashboardTabState extends State<_DashboardTab>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-
-            // ── Header ────────────────────────────────────
             _buildHeader(),
             const SizedBox(height: 24),
             _buildHeroSummary(),
@@ -266,32 +288,27 @@ class _DashboardTabState extends State<_DashboardTab>
             const SizedBox(height: 22),
             _buildAiFetcher(),
             const SizedBox(height: 24),
-
-            // ── Upcoming Sessions ─────────────────────────
             _buildSectionTitle('Upcoming Session', onMore: () {}),
             const SizedBox(height: 12),
             _buildUpcomingSession(),
             const SizedBox(height: 24),
-
-            // ── AI Roadmap Progress ───────────────────────
-            _buildSectionTitle('AI Roadmap Progress', onMore: () {}),
+            _buildSectionTitle(
+              'AI Roadmap Progress',
+              onMore: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const GenerateRoadmapScreen()),
+              ),
+            ),
             const SizedBox(height: 12),
             _buildRoadmapProgress(),
             const SizedBox(height: 24),
-
-            // ── Notifications ─────────────────────────────
             _buildSectionTitle('Notifications', onMore: () {}),
             const SizedBox(height: 12),
             _buildNotifications(),
             const SizedBox(height: 24),
-
-            // ── Recent Mentors ────────────────────────────
             _buildSectionTitle('Recent Mentors', onMore: () {}),
             const SizedBox(height: 12),
             _buildRecentMentors(),
             const SizedBox(height: 24),
-
-            // ── Quick Actions ─────────────────────────────
             _buildSectionTitle('Quick Actions'),
             const SizedBox(height: 12),
             _buildQuickActions(),
@@ -302,31 +319,25 @@ class _DashboardTabState extends State<_DashboardTab>
     );
   }
 
-  // ── Header ─────────────────────────────────────────────────────
   Widget _buildHeader() {
     return Row(
       children: [
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: const [
-                  Text(
-                    'Hello, Rohan ',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                  Text('👋', style: TextStyle(fontSize: 22)),
-                ],
+            children: const [
+              Text(
+                'Hello, Rohan ',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.ink,
+                ),
               ),
-              const SizedBox(height: 6),
-              const Text(
+              SizedBox(height: 8),
+              Text(
                 'Build a stronger skillset with guided mentor support.',
-                style: TextStyle(fontSize: 14, color: AppColors.muted, height: 1.5),
+                style: TextStyle(fontSize: 13, color: AppColors.muted, height: 1.5),
               ),
             ],
           ),
@@ -438,8 +449,8 @@ class _DashboardTabState extends State<_DashboardTab>
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Text(
@@ -596,7 +607,7 @@ class _DashboardTabState extends State<_DashboardTab>
         border: Border.all(color: AppColors.line),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -630,7 +641,7 @@ class _DashboardTabState extends State<_DashboardTab>
                   onChanged: (value) => setState(() => _aiQuery = value),
                   decoration: InputDecoration(
                     hintText: 'What do you want help with?',
-                        hintStyle: TextStyle(color: AppColors.muted.withValues(alpha: 0.75)),
+                    hintStyle: TextStyle(color: AppColors.muted.withValues(alpha: 0.75)),
                     filled: true,
                     fillColor: AppColors.field,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -718,15 +729,16 @@ class _DashboardTabState extends State<_DashboardTab>
     });
 
     Future.delayed(const Duration(milliseconds: 900), () {
-      setState(() {
-        _isFetchingAi = false;
-        _aiResponse =
-            'AI suggests: Focus on ${_aiQuery.trim().isEmpty ? 'goal alignment' : _aiQuery.trim()}, review top mentor profiles, and schedule a 30-minute session this week.';
-      });
+      if (mounted) {
+        setState(() {
+          _isFetchingAi = false;
+          _aiResponse =
+              'AI suggests: Focus on ${_aiQuery.trim().isEmpty ? 'goal alignment' : _aiQuery.trim()}, review top mentor profiles, and schedule a 30-minute session this week.';
+        });
+      }
     });
   }
 
-  // ── Section Title ──────────────────────────────────────────────
   Widget _buildSectionTitle(String title, {VoidCallback? onMore}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -755,7 +767,6 @@ class _DashboardTabState extends State<_DashboardTab>
     );
   }
 
-  // ── Upcoming Session Card ──────────────────────────────────────
   Widget _buildUpcomingSession() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -765,7 +776,7 @@ class _DashboardTabState extends State<_DashboardTab>
         border: Border.all(color: AppColors.line),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -804,7 +815,6 @@ class _DashboardTabState extends State<_DashboardTab>
   }) {
     return Row(
       children: [
-        // Avatar
         Container(
           width: 46,
           height: 46,
@@ -816,8 +826,6 @@ class _DashboardTabState extends State<_DashboardTab>
           ),
         ),
         const SizedBox(width: 12),
-
-        // Info
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -860,8 +868,6 @@ class _DashboardTabState extends State<_DashboardTab>
             ],
           ),
         ),
-
-        // Join Button
         if (showJoin)
           ElevatedButton(
             onPressed: () {},
@@ -904,7 +910,6 @@ class _DashboardTabState extends State<_DashboardTab>
     );
   }
 
-  // ── AI Roadmap Progress ────────────────────────────────────────
   Widget _buildRoadmapProgress() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -922,7 +927,6 @@ class _DashboardTabState extends State<_DashboardTab>
       ),
       child: Row(
         children: [
-          // Circular progress
           AnimatedBuilder(
             animation: _progressAnim,
             builder: (context, child) => SizedBox(
@@ -966,8 +970,6 @@ class _DashboardTabState extends State<_DashboardTab>
             ),
           ),
           const SizedBox(width: 20),
-
-          // Details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -986,18 +988,25 @@ class _DashboardTabState extends State<_DashboardTab>
                   style: TextStyle(fontSize: 12, color: AppColors.muted),
                 ),
                 const SizedBox(height: 12),
-
-                // Steps
                 _progressStep('Dart Basics', true),
                 const SizedBox(height: 6),
                 _progressStep('Flutter Basics', true),
                 const SizedBox(height: 6),
                 _progressStep('State Management', false),
                 const SizedBox(height: 12),
-
-                // CTA
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const RoadmapPhaseDetailScreen(
+                        phaseNumber: 3,
+                        title: 'State Management',
+                        description: 'Master Provider, Riverpod, Bloc and other state solutions.',
+                        duration: '3 Weeks',
+                        level: 'Intermediate',
+                        progress: 0.61,
+                      ),
+                    ),
+                  ),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -1048,10 +1057,9 @@ class _DashboardTabState extends State<_DashboardTab>
     );
   }
 
-  // ── Notifications ──────────────────────────────────────────────
   Widget _buildNotifications() {
     final notifications = [
-      _NotifData(
+      const _NotifData(
         icon: Icons.calendar_today_rounded,
         color: AppColors.primary,
         bgColor: AppColors.primarySoft,
@@ -1059,18 +1067,18 @@ class _DashboardTabState extends State<_DashboardTab>
         subtitle: 'Rahul Sharma session in 30 mins',
         time: '10 min ago',
       ),
-      _NotifData(
+      const _NotifData(
         icon: Icons.star_rounded,
         color: Colors.amber,
-        bgColor: const Color(0xFFFFF8E1),
+        bgColor: Color(0xFFFFF8E1),
         title: 'New Review',
         subtitle: 'You received a 5-star review!',
         time: '1 hr ago',
       ),
-      _NotifData(
+      const _NotifData(
         icon: Icons.route_rounded,
         color: Colors.deepPurple,
-        bgColor: const Color(0xFFF3E5F5),
+        bgColor: Color(0xFFF3E5F5),
         title: 'Roadmap Updated',
         subtitle: 'Your AI roadmap has new steps',
         time: '2 hrs ago',
@@ -1089,32 +1097,31 @@ class _DashboardTabState extends State<_DashboardTab>
     );
   }
 
-  // ── Recent Mentors ─────────────────────────────────────────────
   Widget _buildRecentMentors() {
     final mentors = [
-      _MentorData(
+      const _MentorData(
         name: 'Rahul Sharma',
         skill: 'Flutter',
         rating: '4.9',
-        color: const Color(0xFF5C6BC0),
+        color: Color(0xFF5C6BC0),
       ),
-      _MentorData(
+      const _MentorData(
         name: 'Sneha Iyer',
         skill: 'UI/UX',
         rating: '4.7',
-        color: const Color(0xFFEC407A),
+        color: Color(0xFFEC407A),
       ),
-      _MentorData(
+      const _MentorData(
         name: 'Amit Verma',
         skill: 'React',
         rating: '4.8',
-        color: const Color(0xFF26A69A),
+        color: Color(0xFF26A69A),
       ),
-      _MentorData(
+      const _MentorData(
         name: 'Vikram Patel',
         skill: 'AI/ML',
         rating: '4.6',
-        color: const Color(0xFFFF7043),
+        color: Color(0xFFFF7043),
       ),
     ];
 
@@ -1130,7 +1137,6 @@ class _DashboardTabState extends State<_DashboardTab>
     );
   }
 
-  // ── Quick Actions ──────────────────────────────────────────────
   Widget _buildQuickActions() {
     return Row(
       children: [
@@ -1170,9 +1176,6 @@ class _DashboardTabState extends State<_DashboardTab>
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Notification Card
-// ══════════════════════════════════════════════════════════════════
 class _NotifData {
   final IconData icon;
   final Color color;
@@ -1254,9 +1257,6 @@ class _NotificationCard extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Mentor Card
-// ══════════════════════════════════════════════════════════════════
 class _MentorData {
   final String name;
   final String skill;
@@ -1341,9 +1341,6 @@ class _MentorCard extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Quick Action Card
-// ══════════════════════════════════════════════════════════════════
 class _QuickActionCard extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -1419,9 +1416,6 @@ class _AiHintChip extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Placeholder Tabs
-// ══════════════════════════════════════════════════════════════════
 class _ExpertsTab extends StatelessWidget {
   const _ExpertsTab();
 
@@ -1430,8 +1424,6 @@ class _ExpertsTab extends StatelessWidget {
     return const ExpertListingScreen();
   }
 }
-
-// Chat tab removed — UI no longer includes chat as a separate bottom nav item.
 
 class _CommunityTab extends StatelessWidget {
   const _CommunityTab();
@@ -1451,7 +1443,6 @@ class _CommunityTab extends StatelessWidget {
   }
 }
 
-// ── AI Assistant Screen ─────────────────────────────────────────
 class AiAssistantScreen extends StatelessWidget {
   const AiAssistantScreen({super.key});
 
