@@ -81,6 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
         ),
         floatingActionButton: FloatingActionButton(
+          heroTag: 'profile_fab',
           onPressed: () {},
           backgroundColor: Colors.transparent,
           elevation: 0,
