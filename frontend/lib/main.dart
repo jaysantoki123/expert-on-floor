@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'screens/splash_screen.dart';
 import 'core/theme/app_colors.dart';
 import 'providers/auth_provider.dart';
 import 'providers/expert_provider.dart';
+import 'screens/learner/learner_dashboard_screen.dart';
 
 
 
@@ -63,8 +63,8 @@ class ExpertMentorApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const SplashScreen(),
-      
+      home: const LearnerDashboardScreen(),
+        // home: const GenerateRoadmapScreen(),
     );
   }
 }

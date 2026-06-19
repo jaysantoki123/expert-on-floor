@@ -205,8 +205,8 @@ class _ConversationsScreenState extends State<ConversationsScreen>
         body: SafeArea(
           child: Column(
             children: [
-              // ── Top Bar ──────────────────────────
-              _buildTopBar(),
+              // ── Header ───────────────────────────
+              _buildHeader(),
 
               // ── Online Experts Row ───────────────
               _buildOnlineRow(),
@@ -257,6 +257,7 @@ class _ConversationsScreenState extends State<ConversationsScreen>
         ),
         // ── FAB ──────────────────────────────────
         floatingActionButton: FloatingActionButton(
+          heroTag: 'conversations_fab',
           onPressed: _showNewChatSheet,
           backgroundColor: AppColors.primary,
           elevation: 4,
@@ -266,41 +267,69 @@ class _ConversationsScreenState extends State<ConversationsScreen>
     );
   }
 
-  // ── Top Bar ────────────────────────────────────────────────────
-  Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+  // ══════════════════════════════════════════════════════════════
+  // Header
+  // ══════════════════════════════════════════════════════════════
+  Widget _buildHeader() {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
       child: Row(
         children: [
-          // Title + unread count
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Messages',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
-                  letterSpacing: -0.5,
-                ),
+          // Back button
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
               ),
-              if (_totalUnread > 0)
-                Text(
-                  '$_totalUnread unread message${_totalUnread > 1 ? 's' : ''}',
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.ink,
+                size: 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+
+          // Title + unread count subtitle
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Messages',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.muted,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    letterSpacing: -0.4,
                   ),
                 ),
-            ],
+                if (_totalUnread > 0)
+                  Text(
+                    '$_totalUnread unread message${_totalUnread > 1 ? 's' : ''}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.muted,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  )
+                else
+                  const Text(
+                    'Your expert conversations',
+                    style: TextStyle(fontSize: 12, color: AppColors.muted),
+                  ),
+              ],
+            ),
           ),
-          const Spacer(),
 
           // Search toggle
-          _TopBarBtn(
-            icon: _isSearchVisible ? Icons.close_rounded : Icons.search_rounded,
+          GestureDetector(
             onTap: () {
               setState(() {
                 _isSearchVisible = !_isSearchVisible;
@@ -310,11 +339,43 @@ class _ConversationsScreenState extends State<ConversationsScreen>
                 }
               });
             },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _isSearchVisible ? AppColors.primarySoft : AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _isSearchVisible ? AppColors.primary : AppColors.line,
+                ),
+              ),
+              child: Icon(
+                _isSearchVisible ? Icons.close_rounded : Icons.search_rounded,
+                color: _isSearchVisible ? AppColors.primary : AppColors.ink,
+                size: 20,
+              ),
+            ),
           ),
           const SizedBox(width: 8),
 
           // Filter
-          _TopBarBtn(icon: Icons.tune_rounded, onTap: _showFilterSheet),
+          GestureDetector(
+            onTap: _showFilterSheet,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Icon(
+                Icons.tune_rounded,
+                color: AppColors.ink,
+                size: 20,
+              ),
+            ),
+          ),
         ],
       ),
     );

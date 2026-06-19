@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
+import 'roadmap_phase_detail_screen.dart';
 
 class MyRoadmapScreen extends StatefulWidget {
   const MyRoadmapScreen({super.key});
@@ -80,58 +82,103 @@ class _MyRoadmapScreenState extends State<MyRoadmapScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F4),
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        surfaceTintColor: AppColors.white,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.ink,
-            size: 20,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF4F6F4),
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    children: [
+                      // ── Progress Card ─────────────────────
+                      _buildProgressCard(),
+                      const SizedBox(height: 16),
+
+                      // ── Steps ─────────────────────────────
+                      _buildRoadmapSteps(),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'My Roadmap',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.ink,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.refresh_rounded,
-              color: AppColors.primary,
-              size: 22,
-            ),
-            onPressed: () {},
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Divider(height: 1, color: AppColors.line),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            // ── Progress Card ─────────────────────
-            _buildProgressCard(),
-            const SizedBox(height: 16),
+    );
+  }
 
-            // ── Steps ─────────────────────────────
-            _buildRoadmapSteps(),
-            const SizedBox(height: 40),
-          ],
-        ),
+  // ══════════════════════════════════════════════════════════════
+  // Header
+  // ══════════════════════════════════════════════════════════════
+  Widget _buildHeader() {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.ink,
+                size: 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'My Roadmap',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                Text(
+                  'Track your learning journey',
+                  style: TextStyle(fontSize: 12, color: AppColors.muted),
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () {},
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Icon(
+                Icons.refresh_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -491,6 +538,42 @@ class _MyRoadmapScreenState extends State<MyRoadmapScreen>
                                         ),
                                       ),
                                     ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 38,
+                                    child: OutlinedButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => RoadmapPhaseDetailScreen(
+                                              phaseNumber: i + 1,
+                                              title: step.title,
+                                              description: step.description,
+                                              duration: step.duration,
+                                              level: 'Intermediate', // Default or derived
+                                              progress: step.status == 'completed' ? 1.0 : (step.status == 'in_progress' ? 0.25 : 0.0),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(color: AppColors.primary),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'View Phase Details',
+                                        style: TextStyle(
+                                          color: AppColors.primary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                   if (step.status == 'in_progress') ...[
                                     const SizedBox(height: 12),

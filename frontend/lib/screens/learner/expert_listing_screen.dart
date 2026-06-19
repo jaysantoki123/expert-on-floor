@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/expert_model.dart';
@@ -270,122 +271,117 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
     final provider = context.watch<ExpertProvider>();
     final experts = _filteredExperts;
 
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () => provider.fetchExperts(forceRefresh: true),
-          color: AppColors.primary,
-          child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              // ── Search Bar (TOP) ─────────────────────────
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                sliver: SliverToBoxAdapter(child: _buildSearchBar()),
-              ),
-
-              // ── Top Bar ──────────────────────────────────
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverToBoxAdapter(child: _buildTopBar()),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 12)),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverToBoxAdapter(child: _buildSummaryCard()),
-              ),
-
-              // ── Filter Chips ─────────────────────────────
-              const SliverToBoxAdapter(child: SizedBox(height: 16)),
-              SliverToBoxAdapter(child: _buildFilterRow()),
-              const SliverToBoxAdapter(child: SizedBox(height: 4)),
-
-              // ── Results count ────────────────────────────
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-                sliver: SliverToBoxAdapter(
-                  child: Row(
-                    children: [
-                      Text(
-                        '${experts.length} experts found',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.muted,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const Spacer(),
-                      // Sort button
-                      GestureDetector(
-                        onTap: _showSortSheet,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primarySoft,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: AppColors.line),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.sort_rounded,
-                                size: 14,
-                                color: AppColors.primary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                _sortBy,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ── Expert List ──────────────────────────────
-              if (provider.isLoading)
-                const SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else if (provider.error != null)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _buildErrorState(provider.error!),
-                )
-              else if (experts.isEmpty)
-                SliverFillRemaining(
-                  hasScrollBody: false,
-                  child: _buildEmptyState(),
-                )
-              else
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        extendBody: true,
+        backgroundColor: AppColors.white,
+        body: SafeArea(
+          child: RefreshIndicator(
+            onRefresh: () => provider.fetchExperts(forceRefresh: true),
+            color: AppColors.primary,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
-                  sliver: SliverList.separated(
-                    itemCount: experts.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (_, i) => _ExpertCard(
-                      expert: experts[i],
-                      onTap: () => _openProfile(experts[i]),
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                  sliver: SliverToBoxAdapter(child: _buildSearchBar()),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverToBoxAdapter(child: _buildTopBar()),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverToBoxAdapter(child: _buildSummaryCard()),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                SliverToBoxAdapter(child: _buildFilterRow()),
+                const SliverToBoxAdapter(child: SizedBox(height: 4)),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                  sliver: SliverToBoxAdapter(
+                    child: Row(
+                      children: [
+                        Text(
+                          '${experts.length} experts found',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.muted,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: _showSortSheet,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primarySoft,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppColors.line),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.sort_rounded,
+                                  size: 14,
+                                  color: AppColors.primary,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _sortBy,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-            ],
+                if (provider.isLoading)
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (provider.error != null)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildErrorState(provider.error!),
+                  )
+                else if (experts.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildEmptyState(),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                    sliver: SliverList.separated(
+                      itemCount: experts.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
+                      itemBuilder: (_, i) => _ExpertCard(
+                        expert: experts[i],
+                        onTap: () => _openProfile(experts[i]),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
+
       ),
     );
   }
@@ -469,11 +465,7 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.light_mode_rounded,
-                  color: AppColors.primary,
-                  size: 26,
-                ),
+                Icon(Icons.light_mode_rounded, color: AppColors.primary, size: 26),
               ],
             ),
             const SizedBox(height: 14),
@@ -489,11 +481,7 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
             const SizedBox(height: 16),
             const Text(
               'Use the search and filters below to quickly narrow down the best expert for your needs.',
-              style: TextStyle(
-                fontSize: 13,
-                color: AppColors.ink,
-                height: 1.45,
-              ),
+              style: TextStyle(fontSize: 13, color: AppColors.ink, height: 1.45),
             ),
           ],
         ),
@@ -529,18 +517,13 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.muted,
-              height: 1.4,
-            ),
+            style: const TextStyle(fontSize: 11, color: AppColors.muted, height: 1.4),
           ),
         ],
       ),
     );
   }
 
-  // ── Search Bar ─────────────────────────────────────────────────
   Widget _buildSearchBar() {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -606,11 +589,7 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
                     color: AppColors.muted.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.close_rounded,
-                    size: 13,
-                    color: AppColors.muted,
-                  ),
+                  child: const Icon(Icons.close_rounded, size: 13, color: AppColors.muted),
                 ),
               ),
             ),
@@ -619,7 +598,6 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
     );
   }
 
-  // ── Filter Row ─────────────────────────────────────────────────
   Widget _buildFilterRow() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -627,7 +605,6 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
         height: 38,
         child: Row(
           children: [
-            // Category Dropdown
             Expanded(
               child: _DropdownChip(
                 label: 'Category',
@@ -637,8 +614,6 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
               ),
             ),
             const SizedBox(width: 10),
-
-            // Skills Dropdown
             Expanded(
               child: _DropdownChip(
                 label: 'Skills',
@@ -648,8 +623,6 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
               ),
             ),
             const SizedBox(width: 10),
-
-            // Filters chip
             Expanded(
               child: GestureDetector(
                 onTap: _showFilterSheet,
@@ -664,11 +637,7 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.filter_list_rounded,
-                        size: 15,
-                        color: AppColors.muted,
-                      ),
+                      const Icon(Icons.filter_list_rounded, size: 15, color: AppColors.muted),
                       const SizedBox(width: 5),
                       Text(
                         'Filters',
@@ -689,7 +658,6 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
     );
   }
 
-  // ── Error State ────────────────────────────────────────────────
   Widget _buildErrorState(String message) {
     return Center(
       child: Padding(
@@ -697,31 +665,17 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline_rounded,
-              color: Colors.redAccent,
-              size: 48,
-            ),
+            const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 48),
             const SizedBox(height: 16),
             const Text(
               'Failed to load experts',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.ink,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink),
             ),
             const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: AppColors.muted),
-            ),
+            Text(message, textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: AppColors.muted)),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => context.read<ExpertProvider>().fetchExperts(
-                forceRefresh: true,
-              ),
+              onPressed: () => context.read<ExpertProvider>().fetchExperts(forceRefresh: true),
               child: const Text('Retry'),
             ),
           ],
@@ -730,7 +684,6 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
     );
   }
 
-  // ── Empty State ────────────────────────────────────────────────
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -739,36 +692,30 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
           Container(
             width: 80,
             height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.primarySoft,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.search_off_rounded,
-              color: AppColors.primary,
-              size: 40,
-            ),
+            decoration: BoxDecoration(color: AppColors.primarySoft, shape: BoxShape.circle),
+            child: const Icon(Icons.search_off_rounded, color: AppColors.primary, size: 40),
           ),
           const SizedBox(height: 16),
           const Text(
             'No experts found',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.ink,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink),
           ),
           const SizedBox(height: 8),
-          Text(
-            'Try adjusting your search or filters',
-            style: TextStyle(fontSize: 13, color: AppColors.muted),
-          ),
+          Text('Try adjusting your search or filters', style: TextStyle(fontSize: 13, color: AppColors.muted)),
         ],
       ),
     );
   }
 
-  // ── Sort Bottom Sheet ──────────────────────────────────────────
+  void _openProfile(ExpertModel expert) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ExpertProfileScreen(expert: expert)),
+    );
+  }
+
+
+
+  // ── Sort Bottom Sheet ────────────────────────────────────────────
   void _showSortSheet() {
     showModalBottomSheet(
       context: context,
@@ -841,12 +788,6 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
           Navigator.pop(context);
         },
       ),
-    );
-  }
-
-  void _openProfile(ExpertModel expert) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => ExpertProfileScreen(expert: expert)),
     );
   }
 }
@@ -1439,3 +1380,4 @@ class _ExpertCard extends StatelessWidget {
     );
   }
 }
+
