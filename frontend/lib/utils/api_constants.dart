@@ -5,7 +5,7 @@ class ApiConstants {
   static const String googleClientId = "602850848367-tssnldslujlhkkei23iedefmp6pjvstk.apps.googleusercontent.com";
 
   // Set this to your PC IP when testing on a physical mobile device.
-  static const String physicalDeviceHost = 'http://192.168.31.46:5000/v1';
+  static const String physicalDeviceHost = 'http://10.128.144.56:5000/v1';
   static const bool useAndroidEmulatorHost = true;
 
   static String get baseUrl {
@@ -15,7 +15,7 @@ class ApiConstants {
     if (Platform.isAndroid) {
       // Use 10.0.2.2 for Android emulator, or a physical device host if needed.
       return useAndroidEmulatorHost
-          ? 'http://10.0.2.2:5000/v1'
+          ? 'http://10.128.144.56:5000/v1'
           : physicalDeviceHost;
     }
     if (Platform.isIOS) {

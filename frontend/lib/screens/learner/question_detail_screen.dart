@@ -162,7 +162,7 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen> {
         border: Border.all(color: AppColors.line),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha:  0.04),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -365,7 +365,7 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen> {
         border: Border(top: BorderSide(color: AppColors.line)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha:  0.06),
             blurRadius: 12,
             offset: const Offset(0, -3),
           ),
@@ -403,7 +403,7 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen> {
                 decoration: InputDecoration(
                   hintText: 'Write your answer...',
                   hintStyle: TextStyle(
-                    color: AppColors.muted.withOpacity(0.7),
+                    color: AppColors.muted.withValues(alpha:  0.7),
                     fontSize: 13,
                   ),
                   border: InputBorder.none,
@@ -479,12 +479,13 @@ class _TagPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 20, 23, 26),
+        color: AppColors.field,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.line),
       ),
       child: Text(
         tag,
-        style: const TextStyle(fontSize: 12, color: Colors.blue),
+        style: const TextStyle(fontSize: 12, color: AppColors.ink, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -534,13 +535,13 @@ class _AnswerCardState extends State<_AnswerCard> {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: widget.answer.isAccepted
-              ? AppColors.primary.withOpacity(0.4)
+              ? AppColors.primary.withValues(alpha:  0.4)
               : AppColors.line,
           width: widget.answer.isAccepted ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha:  0.04),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),

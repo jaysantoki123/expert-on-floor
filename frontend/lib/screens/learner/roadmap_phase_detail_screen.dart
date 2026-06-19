@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import 'roadmap_phase_completion_screen.dart';
 
@@ -41,74 +42,104 @@ class _RoadmapPhaseDetailScreenState extends State<RoadmapPhaseDetailScreen> wit
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAF8),
-      appBar: _buildAppBar(context),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  _buildPhaseHeaderCard(),
-                  const SizedBox(height: 16),
-                  _buildStatsRow(),
-                  // const SizedBox(height: 24),
-                  // _buildTabBar(),
-                  const SizedBox(height: 20),
-                  _buildTabContent(),
-                ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAF8),
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(context),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 12),
+                      _buildPhaseHeaderCard(),
+                      const SizedBox(height: 16),
+                      _buildStatsRow(),
+                      const SizedBox(height: 20),
+                      _buildTabContent(),
+                    ],
+                  ),
+                ),
               ),
-            ),
+              _buildBottomButton(),
+            ],
           ),
-          _buildBottomButton(),
-        ],
+        ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      leading: Center(
-        child: GestureDetector(
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.line),
+  // ══════════════════════════════════════════════════════════════
+  // Header
+  // ══════════════════════════════════════════════════════════════
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.ink,
+                size: 18,
+              ),
             ),
-            child: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.ink, size: 16),
           ),
-        ),
-      ),
-      title: const Text(
-        'Roadmap Detail',
-        style: TextStyle(color: AppColors.ink, fontWeight: FontWeight.w800, fontSize: 18),
-      ),
-      centerTitle: true,
-      actions: [
-        Center(
-          child: Container(
-            margin: const EdgeInsets.only(right: 20),
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.line),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Roadmap Detail',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                Text(
+                  'Phase learning path',
+                  style: TextStyle(fontSize: 12, color: AppColors.muted),
+                ),
+              ],
             ),
-            child: const Icon(Icons.bookmark_border_rounded, color: AppColors.ink, size: 20),
           ),
-        ),
-      ],
+          GestureDetector(
+            onTap: () {},
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Icon(
+                Icons.bookmark_border_rounded,
+                color: AppColors.ink,
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -121,7 +152,7 @@ class _RoadmapPhaseDetailScreenState extends State<RoadmapPhaseDetailScreen> wit
         border: Border.all(color: AppColors.line),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha:  0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -774,7 +805,7 @@ class _RoadmapPhaseDetailScreenState extends State<RoadmapPhaseDetailScreen> wit
       decoration: BoxDecoration(
         color: const Color(0xFFF0F9F4),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF00B67A).withOpacity(0.1)),
+        border: Border.all(color: const Color(0xFF00B67A).withValues(alpha:  0.1)),
       ),
       child: Row(
         children: [
@@ -813,7 +844,7 @@ class _RoadmapPhaseDetailScreenState extends State<RoadmapPhaseDetailScreen> wit
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:  0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),

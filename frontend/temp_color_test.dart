@@ -1,5 +1,7 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:developer';
+
+import 'package:flutter/material.dart';
 void main() {
   final c = Colors.black.withValues(alpha: 0.5);
-  print(c);
+  log(c.toString());
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 
 class MyBookingsScreen extends StatefulWidget {
@@ -11,16 +12,23 @@ class MyBookingsScreen extends StatefulWidget {
 class _MyBookingsScreenState extends State<MyBookingsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _showSearch = false;
+  String _searchQuery = '';
+  final TextEditingController _searchCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _searchCtrl.addListener(() {
+      setState(() => _searchQuery = _searchCtrl.text);
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _searchCtrl.dispose();
     super.dispose();
   }
 
@@ -101,85 +109,177 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F4),
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        surfaceTintColor: AppColors.white,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.ink,
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'My Bookings',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.ink,
-          ),
-        ),
-        centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Container(
-              height: 42,
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.field,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.line),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF4F6F4),
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              if (_showSearch) _buildSearchBar(),
+              _buildTabBar(),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildList(_upcoming),
+                    _buildList(_past),
+                    _buildList(_cancelled),
+                  ],
+                ),
               ),
-              child: TabBar(
-                controller: _tabController,
-                indicator: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelColor: AppColors.white,
-                unselectedLabelColor: AppColors.muted,
-                labelStyle: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
-                unselectedLabelStyle: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-                dividerColor: Colors.transparent,
-                tabs: [
-                  Tab(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('Upcoming'),
-                        const SizedBox(width: 4),
-                        _tabBadge('${_upcoming.length}'),
-                      ],
-                    ),
-                  ),
-                  const Tab(text: 'Past'),
-                  const Tab(text: 'Cancelled'),
-                ],
-              ),
-            ),
+            ],
           ),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // Header
+  // ══════════════════════════════════════════════════════════════
+  Widget _buildHeader() {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
+      child: Row(
         children: [
-          _buildList(_upcoming),
-          _buildList(_past),
-          _buildList(_cancelled),
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.ink,
+                size: 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'My Bookings',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                Text(
+                  'Your scheduled expert sessions',
+                  style: TextStyle(fontSize: 12, color: AppColors.muted),
+                ),
+              ],
+            ),
+          ),
+          // Search
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _showSearch = !_showSearch;
+                if (!_showSearch) _searchCtrl.clear();
+              });
+            },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _showSearch ? AppColors.primarySoft : AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _showSearch ? AppColors.primary : AppColors.line,
+                ),
+              ),
+              child: Icon(
+                _showSearch ? Icons.close_rounded : Icons.search_rounded,
+                color: _showSearch ? AppColors.primary : AppColors.ink,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Filter
+          GestureDetector(
+            onTap: () {},
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Icon(
+                Icons.sort_rounded,
+                color: AppColors.ink,
+                size: 20,
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // Tab Bar
+  // ══════════════════════════════════════════════════════════════
+  Widget _buildTabBar() {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Container(
+        height: 42,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.field,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.line),
+        ),
+        child: TabBar(
+          controller: _tabController,
+          indicator: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelColor: AppColors.white,
+          unselectedLabelColor: AppColors.muted,
+          labelStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+          dividerColor: Colors.transparent,
+          tabs: [
+            Tab(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Upcoming'),
+                  const SizedBox(width: 4),
+                  _tabBadge('${_upcoming.length}'),
+                ],
+              ),
+            ),
+            const Tab(text: 'Past'),
+            const Tab(text: 'Cancelled'),
+          ],
+        ),
       ),
     );
   }
@@ -194,6 +294,49 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
       child: Text(
         count,
         style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // Search Bar
+  // ══════════════════════════════════════════════════════════════
+  Widget _buildSearchBar() {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+      child: TextField(
+        controller: _searchCtrl,
+        autofocus: true,
+        style: const TextStyle(fontSize: 14, color: AppColors.ink),
+        decoration: InputDecoration(
+          hintText: 'Search bookings, experts, topics...',
+          hintStyle: TextStyle(
+            color: AppColors.muted.withValues(alpha: 0.7),
+            fontSize: 13,
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: AppColors.primary,
+            size: 20,
+          ),
+          prefixIconConstraints: const BoxConstraints(minWidth: 48),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+          ),
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 13, horizontal: 10),
+        ),
       ),
     );
   }

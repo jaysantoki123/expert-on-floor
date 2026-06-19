@@ -132,7 +132,7 @@ class RoadmapResultScreen extends StatelessWidget {
               border: Border.all(color: AppColors.line),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha:  0.05),
                   blurRadius: 10,
                 ),
               ],
@@ -186,7 +186,7 @@ class RoadmapResultScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha:  0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -198,7 +198,7 @@ class RoadmapResultScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.white.withOpacity(0.2),
+              color: AppColors.white.withValues(alpha:  0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -232,7 +232,7 @@ class RoadmapResultScreen extends StatelessWidget {
           Text(
             'We have crafted a $_totalWeeks-week intensive plan to help you achieve your goal.',
             style: TextStyle(
-              color: AppColors.white.withOpacity(0.85),
+              color: AppColors.white.withValues(alpha:  0.85),
               fontSize: 14,
               height: 1.5,
             ),
@@ -321,7 +321,7 @@ class RoadmapResultScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: phase.accentColor.withOpacity(0.2),
+                      color: phase.accentColor.withValues(alpha:  0.2),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -367,7 +367,7 @@ class RoadmapResultScreen extends StatelessWidget {
                   border: Border.all(color: AppColors.line),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
+                      color: Colors.black.withValues(alpha:  0.03),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
                     ),
@@ -380,7 +380,7 @@ class RoadmapResultScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: phase.softColor.withOpacity(0.5),
+                        color: phase.softColor.withValues(alpha:  0.5),
                         borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(24)),
                       ),
@@ -481,7 +481,7 @@ class RoadmapResultScreen extends StatelessWidget {
         border: Border(top: BorderSide(color: AppColors.line)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:  0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),

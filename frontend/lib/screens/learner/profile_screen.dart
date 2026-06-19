@@ -1,13 +1,14 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import 'my_bookings_screen.dart';
 import 'my_roadmap_screen.dart';
 import 'conversations_screen.dart';
-import 'learner_dashboard_screen.dart';
 import 'session_history_screen.dart';
 import 'my_reviews_screen.dart';
+import 'payment_history_screen.dart';
+import 'notifications_screen.dart';
+import 'saved_experts_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -80,120 +81,11 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          heroTag: 'profile_fab',
-          onPressed: () {},
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: Container(
-            width: 66,
-            height: 66,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF0F9D58), Color(0xFF00B67A)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF00B67A).withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.auto_awesome_rounded, color: AppColors.white, size: 30),
-          ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: _buildBottomNav(),
+
       ),
     );
   }
 
-  // Extract bottom nav to separate widget
-  Widget _buildBottomNav() {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 0, 16, 12 + bottomInset),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: AppColors.white.withValues(alpha: 0.25),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: BottomAppBar(
-            padding: EdgeInsets.zero,
-            height: 76,
-            shape: const CircularNotchedRectangle(),
-            notchMargin: 8,
-            elevation: 0,
-            color: AppColors.white.withValues(alpha: 0.55),
-            clipBehavior: Clip.antiAlias,
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _NavItem(
-                      icon: Icons.home_outlined,
-                      activeIcon: Icons.home_rounded,
-                      label: 'Home',
-                      index: 0,
-                      currentIndex: 3,
-                      onTap: () => Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const LearnerDashboardScreen()),
-                      ),
-                    ),
-                    _NavItem(
-                      icon: Icons.school_outlined,
-                      activeIcon: Icons.school_rounded,
-                      label: 'Experts',
-                      index: 1,
-                      currentIndex: 3,
-                      onTap: () {},
-                    ),
-                    const SizedBox(width: 56),
-                    _NavItem(
-                      icon: Icons.people_outline_rounded,
-                      activeIcon: Icons.people_rounded,
-                      label: 'Community',
-                      index: 2,
-                      currentIndex: 3,
-                      onTap: () {},
-                    ),
-                    _NavItem(
-                      icon: Icons.person_outline_rounded,
-                      activeIcon: Icons.person_rounded,
-                      label: 'Profile',
-                      index: 3,
-                      currentIndex: 3,
-                      onTap: () {},
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   // ══════════════════════════════════════════════════════════════
   // Header
@@ -507,7 +399,9 @@ class _ProfileScreenState extends State<ProfileScreen>
         label: 'My\nChat',
         color: Colors.deepPurple,
         bgColor: const Color(0xFFF3E5F5),
-        onTap: () {},
+        onTap:() => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const ConversationsScreen())),
       ),
       _QuickAction(
         icon: Icons.route_rounded,
@@ -523,7 +417,9 @@ class _ProfileScreenState extends State<ProfileScreen>
         label: 'Saved\nExperts',
         color: Colors.redAccent,
         bgColor: const Color(0xFFFFEBEE),
-        onTap: () {},
+        onTap: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const SavedExpertsScreen())),
       ),
     ];
 
@@ -645,7 +541,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                 title: 'Notifications',
                 subtitle: '5 new notifications',
                 badge: '5',
-                onTap: () {},
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                ),
                 isLast: true,
               ),
             ],
@@ -671,63 +569,65 @@ class _ProfileScreenState extends State<ProfileScreen>
                 iconBg: const Color(0xFFE8F5E9),
                 title: 'Payment History',
                 subtitle: 'View your transactions',
-                onTap: () {},
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const PaymentHistoryScreen()),
+                ),
               ),
               _MenuItem(
                 icon: Icons.lock_outline_rounded,
                 iconColor: Colors.blueGrey,
                 iconBg: const Color(0xFFECEFF1),
                 title: 'Change Password',
-                subtitle: 'Update your password',
-                onTap: () {},
+                    subtitle: 'Update your password',
+                onTap: () => _showChangePassword(context),
               ),
-              _MenuItem(
-                icon: Icons.privacy_tip_outlined,
-                iconColor: Colors.teal,
-                iconBg: const Color(0xFFE0F2F1),
-                title: 'Privacy Settings',
-                subtitle: 'Manage your data',
-                onTap: () {},
-                isLast: true,
-              ),
+              // _MenuItem(
+              //   icon: Icons.privacy_tip_outlined,
+              //   iconColor: Colors.teal,
+              //   iconBg: const Color(0xFFE0F2F1),
+              //   title: 'Privacy Settings',
+              //   subtitle: 'Manage your data',
+              //   onTap: () {},
+              //   isLast: true,
+              // ),
             ],
           ),
           const SizedBox(height: 16),
 
           // ── Preferences ───────────────────────────
-          const _SectionTitle('Preferences'),
-          const SizedBox(height: 10),
-          _MenuCard(
-            items: [
-              _MenuItem(
-                icon: Icons.language_rounded,
-                iconColor: Colors.blue,
-                iconBg: const Color(0xFFE3F2FD),
-                title: 'Language',
-                subtitle: 'English',
-                onTap: () {},
-                trailingText: 'English',
-              ),
-              _MenuItem(
-                icon: Icons.dark_mode_outlined,
-                iconColor: Colors.indigo,
-                iconBg: const Color(0xFFE8EAF6),
-                title: 'Theme',
-                subtitle: 'Light mode',
-                onTap: () {},
-                trailingText: 'Light',
-              ),
-              _MenuItem(
-                icon: Icons.help_outline_rounded,
-                iconColor: Colors.orange,
-                iconBg: const Color(0xFFFFF3E0),
-                title: 'Help & Support',
-                subtitle: 'FAQs, contact us',
-                onTap: () {},
-                isLast: true,
-              ),
-            ],
-          ),
+          // const _SectionTitle('Preferences'),
+          // const SizedBox(height: 10),
+          // _MenuCard(
+          //   items: [
+          //     _MenuItem(
+          //       icon: Icons.language_rounded,
+          //       iconColor: Colors.blue,
+          //       iconBg: const Color(0xFFE3F2FD),
+          //       title: 'Language',
+          //       subtitle: 'English',
+          //       onTap: () {},
+          //       trailingText: 'English',
+          //     ),
+          //     _MenuItem(
+          //       icon: Icons.dark_mode_outlined,
+          //       iconColor: Colors.indigo,
+          //       iconBg: const Color(0xFFE8EAF6),
+          //       title: 'Theme',
+          //       subtitle: 'Light mode',
+          //       onTap: () {},
+          //       trailingText: 'Light',
+          //     ),
+          //     _MenuItem(
+          //       icon: Icons.help_outline_rounded,
+          //       iconColor: Colors.orange,
+          //       iconBg: const Color(0xFFFFF3E0),
+          //       title: 'Help & Support',
+          //       subtitle: 'FAQs, contact us',
+          //       onTap: () {},
+          //       isLast: true,
+          //     ),
+          //   ],
+          // ),
         ],
       ),
     );
@@ -891,6 +791,18 @@ class _ProfileScreenState extends State<ProfileScreen>
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => const _EditProfileSheet(),
+    );
+  }
+
+  void _showChangePassword(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => const _ChangePasswordSheet(),
     );
   }
 }
@@ -1130,6 +1042,213 @@ class _EditProfileSheetState extends State<_EditProfileSheet> {
 }
 
 // ══════════════════════════════════════════════════════════════════
+// Change Password Sheet
+// ══════════════════════════════════════════════════════════════════
+class _ChangePasswordSheet extends StatefulWidget {
+  const _ChangePasswordSheet();
+
+  @override
+  State<_ChangePasswordSheet> createState() => _ChangePasswordSheetState();
+}
+
+class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
+  final _currentPasswordCtrl = TextEditingController();
+  final _newPasswordCtrl = TextEditingController();
+  final _confirmPasswordCtrl = TextEditingController();
+  bool _loading = false;
+  bool _obscureCurrent = true;
+  bool _obscureNew = true;
+  bool _obscureConfirm = true;
+
+  @override
+  void dispose() {
+    _currentPasswordCtrl.dispose();
+    _newPasswordCtrl.dispose();
+    _confirmPasswordCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.line,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            const Text(
+              'Change Password',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.ink,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Lock icon
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 3),
+              ),
+              child: const Icon(
+                Icons.lock_outline_rounded,
+                color: AppColors.primary,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            _passwordField('Current Password', _currentPasswordCtrl, _obscureCurrent, () {
+              setState(() => _obscureCurrent = !_obscureCurrent);
+            }),
+            const SizedBox(height: 14),
+            _passwordField('New Password', _newPasswordCtrl, _obscureNew, () {
+              setState(() => _obscureNew = !_obscureNew);
+            }),
+            const SizedBox(height: 14),
+            _passwordField('Confirm Password', _confirmPasswordCtrl, _obscureConfirm, () {
+              setState(() => _obscureConfirm = !_obscureConfirm);
+            }),
+            const SizedBox(height: 24),
+
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _loading
+                    ? null
+                    : () async {
+                        setState(() => _loading = true);
+                        await Future.delayed(
+                          const Duration(milliseconds: 1200),
+                        );
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text(
+                                'Password changed successfully!',
+                              ),
+                              backgroundColor: AppColors.primary,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              margin: const EdgeInsets.all(16),
+                            ),
+                          );
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+                child: _loading
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Change Password',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _passwordField(
+    String label,
+    TextEditingController ctrl,
+    bool obscureText,
+    VoidCallback onToggle,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.ink,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: ctrl,
+          obscureText: obscureText,
+          style: const TextStyle(fontSize: 14, color: AppColors.ink),
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.muted, size: 18),
+            suffixIcon: GestureDetector(
+              onTap: onToggle,
+              child: Icon(
+                obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                color: AppColors.muted,
+                size: 18,
+              ),
+            ),
+            filled: true,
+            fillColor: AppColors.field,
+            contentPadding: const EdgeInsets.symmetric(vertical: 14),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.line),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.line),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
 // Reusable Widgets
 // ══════════════════════════════════════════════════════════════════
 
@@ -1166,70 +1285,7 @@ class _StatItem {
   });
 }
 
-// Make _NavItem const constructor for performance
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final int index;
-  final int currentIndex;
-  final VoidCallback onTap;
 
-  const _NavItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.index,
-    required this.currentIndex,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isActive = index == currentIndex;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        constraints: const BoxConstraints(minHeight: 48),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.primarySoft : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isActive ? activeIcon : icon,
-              color: isActive ? AppColors.primary : AppColors.muted,
-              size: 22,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                color: isActive ? AppColors.primary : AppColors.muted,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Container(
-              width: 4,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isActive ? AppColors.primary : Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _StatCard extends StatelessWidget {
   final _StatItem item;

@@ -112,7 +112,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
               decoration: BoxDecoration(
                 color: AppColors.primarySoft,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.primary.withOpacity(0.25)),
+                border: Border.all(color: AppColors.primary.withValues(alpha:  0.25)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,7 +321,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
-            color: AppColors.muted.withOpacity(0.6),
+            color: AppColors.muted.withValues(alpha:  0.6),
             fontSize: 13,
             height: 1.5,
           ),

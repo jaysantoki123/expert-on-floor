@@ -1,12 +1,15 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/screens/learner/my_bookings_screen.dart';
+import 'package:flutter_application_1/screens/learner/my_roadmap_screen.dart';
 import '../../core/theme/app_colors.dart';
 import 'expert_listing_screen.dart';
 import 'profile_screen.dart';
 import 'community_screen.dart';
-import 'my_roadmap_screen.dart';
 import 'genrate_roadmap_screen.dart';
 import 'roadmap_phase_detail_screen.dart';
+import 'notifications_screen.dart';
+import 'conversations_screen.dart';
 
 class LearnerDashboardScreen extends StatefulWidget {
   const LearnerDashboardScreen({super.key});
@@ -27,7 +30,7 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
     _tabs = const [
       _DashboardTab(),
       _ExpertsTab(),
-      _CommunityTab(),
+      CommunityScreen(),
       ProfileScreen(),
     ];
   }
@@ -46,7 +49,7 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
         heroTag: 'dashboard_fab',
         onPressed: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const AiAssistantScreen()),
+            MaterialPageRoute(builder: (_) => const GenerateRoadmapScreen()),
           );
         },
         backgroundColor: Colors.transparent,
@@ -121,7 +124,7 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
                       label: 'Home',
                       index: 0,
                       currentIndex: _currentIndex,
-                      onTap: _onTabTapped,
+                      onTap: onTabTapped,
                     ),
                     _NavItem(
                       icon: Icons.school_outlined,
@@ -129,7 +132,7 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
                       label: 'Experts',
                       index: 1,
                       currentIndex: _currentIndex,
-                      onTap: _onTabTapped,
+                      onTap: onTabTapped,
                     ),
                     const SizedBox(width: 56),
                     _NavItem(
@@ -138,9 +141,7 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
                       label: 'Community',
                       index: 2,
                       currentIndex: _currentIndex,
-                      onTap: (int index) => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const CommunityScreen()),
-                      ),
+                      onTap: onTabTapped,
                     ),
                     _NavItem(
                       icon: Icons.person_outline_rounded,
@@ -148,9 +149,7 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
                       label: 'Profile',
                       index: 3,
                       currentIndex: _currentIndex,
-                      onTap: (int index) => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                      ),
+                      onTap: onTabTapped,
                     ),
                   ],
                 ),
@@ -162,7 +161,7 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
     );
   }
 
-  void _onTabTapped(int index) {
+  void onTabTapped(int index) {
     if (index != _currentIndex) {
       setState(() => _currentIndex = index);
     }
@@ -288,24 +287,30 @@ class _DashboardTabState extends State<_DashboardTab>
             const SizedBox(height: 22),
             _buildAiFetcher(),
             const SizedBox(height: 24),
-            _buildSectionTitle('Upcoming Session', onMore: () {}),
+            _buildSectionTitle('Upcoming Session', onMore: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+            )),
             const SizedBox(height: 12),
             _buildUpcomingSession(),
             const SizedBox(height: 24),
             _buildSectionTitle(
               'AI Roadmap Progress',
               onMore: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const GenerateRoadmapScreen()),
+                MaterialPageRoute(builder: (_) => const MyRoadmapScreen()),
               ),
             ),
             const SizedBox(height: 12),
             _buildRoadmapProgress(),
             const SizedBox(height: 24),
-            _buildSectionTitle('Notifications', onMore: () {}),
+            _buildSectionTitle('Notifications', onMore: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+            )),
             const SizedBox(height: 12),
             _buildNotifications(),
             const SizedBox(height: 24),
-            _buildSectionTitle('Recent Mentors', onMore: () {}),
+            _buildSectionTitle('Recent Mentors', onMore: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ExpertListingScreen()),
+            )),
             const SizedBox(height: 12),
             _buildRecentMentors(),
             const SizedBox(height: 24),
@@ -342,56 +347,66 @@ class _DashboardTabState extends State<_DashboardTab>
             ],
           ),
         ),
-        Stack(
-          children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: AppColors.primarySoft,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.line),
-              ),
-              child: const Icon(
-                Icons.notifications_outlined,
-                color: AppColors.primary,
-                size: 24,
-              ),
-            ),
-            Positioned(
-              right: 10,
-              top: 10,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.redAccent,
+        GestureDetector(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+          ),
+          child: Stack(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
                   shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.line),
+                ),
+                child: const Icon(
+                  Icons.notifications_outlined,
+                  color: AppColors.primary,
+                  size: 24,
                 ),
               ),
-            ),
-          ],
+              Positioned(
+                right: 10,
+                top: 10,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.redAccent,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(width: 12),
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primaryDark, AppColors.primary],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.35),
-              width: 2,
-            ),
+        GestureDetector(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ProfileScreen()),
           ),
-          child: const Icon(
-            Icons.person_rounded,
-            color: AppColors.white,
-            size: 26,
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppColors.primaryDark, AppColors.primary],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.35),
+                width: 2,
+              ),
+            ),
+            child: const Icon(
+              Icons.person_rounded,
+              color: AppColors.white,
+              size: 26,
+            ),
           ),
         ),
       ],
@@ -1145,7 +1160,9 @@ class _DashboardTabState extends State<_DashboardTab>
           label: 'Find Expert',
           color: AppColors.primary,
           bgColor: AppColors.primarySoft,
-          onTap: () {},
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ExpertListingScreen()),
+          ),
         ),
         const SizedBox(width: 12),
         _QuickActionCard(
@@ -1153,7 +1170,9 @@ class _DashboardTabState extends State<_DashboardTab>
           label: 'Community',
           color: Colors.deepPurple,
           bgColor: const Color(0xFFF3E5F5),
-          onTap: () {},
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const CommunityScreen()),
+          ),
         ),
         const SizedBox(width: 12),
         _QuickActionCard(
@@ -1161,7 +1180,9 @@ class _DashboardTabState extends State<_DashboardTab>
           label: 'Roadmap',
           color: Colors.teal,
           bgColor: const Color(0xFFE0F2F1),
-          onTap: () {},
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const MyRoadmapScreen()),
+          ),
         ),
         const SizedBox(width: 12),
         _QuickActionCard(
@@ -1169,7 +1190,9 @@ class _DashboardTabState extends State<_DashboardTab>
           label: 'Chat',
           color: Colors.orange,
           bgColor: const Color(0xFFFFF3E0),
-          onTap: () {},
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ConversationsScreen()),
+          ),
         ),
       ],
     );
@@ -1425,23 +1448,7 @@ class _ExpertsTab extends StatelessWidget {
   }
 }
 
-class _CommunityTab extends StatelessWidget {
-  const _CommunityTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Community Screen',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: AppColors.ink,
-        ),
-      ),
-    );
-  }
-}
+// _CommunityTab is no longer needed — CommunityScreen is used directly in _tabs.
 
 class AiAssistantScreen extends StatelessWidget {
   const AiAssistantScreen({super.key});
@@ -1467,20 +1474,3 @@ class AiAssistantScreen extends StatelessWidget {
   }
 }
 
-class _ProfileTab extends StatelessWidget {
-  const _ProfileTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Profile Screen',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: AppColors.ink,
-        ),
-      ),
-    );
-  }
-}

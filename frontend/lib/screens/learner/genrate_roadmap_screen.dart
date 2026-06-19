@@ -79,90 +79,108 @@ class _GenerateRoadmapScreenState extends State<GenerateRoadmapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: _buildAppBar(),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 28),
-              _buildGoalInput(),
-              const SizedBox(height: 20),
-              _buildDropdownSection(
-                label: 'Current Level',
-                value: _selectedLevel,
-                items: _levels,
-                icon: Icons.signal_cellular_alt_rounded,
-                onChanged: (v) => setState(() => _selectedLevel = v!),
+        child: Column(
+          children: [
+            _buildTopHeader(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 28),
+                    _buildGoalInput(),
+                    const SizedBox(height: 20),
+                    _buildDropdownSection(
+                      label: 'Current Level',
+                      value: _selectedLevel,
+                      items: _levels,
+                      icon: Icons.signal_cellular_alt_rounded,
+                      onChanged: (v) => setState(() => _selectedLevel = v!),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildDropdownSection(
+                      label: 'Time Available Weekly',
+                      value: _selectedTime,
+                      items: _timeOptions,
+                      icon: Icons.access_time_rounded,
+                      onChanged: (v) => setState(() => _selectedTime = v!),
+                    ),
+                    const SizedBox(height: 40),
+                    _buildGenerateButton(),
+                    const SizedBox(height: 24),
+                  ],
+                ),
               ),
-              const SizedBox(height: 20),
-              _buildDropdownSection(
-                label: 'Time Available Weekly',
-                value: _selectedTime,
-                items: _timeOptions,
-                icon: Icons.access_time_rounded,
-                onChanged: (v) => setState(() => _selectedTime = v!),
-              ),
-              const SizedBox(height: 40),
-              _buildGenerateButton(),
-              const SizedBox(height: 24),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppColors.white,
-      elevation: 0,
-      surfaceTintColor: AppColors.white,
-      leading: GestureDetector(
-        onTap: () => Navigator.pop(context),
-        child: Container(
-          margin: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.inkSoft,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.line),
-          ),
-          child: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.ink,
-            size: 16,
-          ),
-        ),
-      ),
-      centerTitle: true,
-      title: const Text(
-        'Generate Roadmap',
-        style: TextStyle(
-          color: AppColors.ink,
-          fontWeight: FontWeight.w700,
-          fontSize: 17,
-        ),
-      ),
-      actions: [
-        Container(
-          margin: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.primarySoft,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-          ),
-          child: const Padding(
-            padding: EdgeInsets.all(8),
-            child: Icon(
-              Icons.auto_awesome_rounded,
-              color: AppColors.primary,
-              size: 16,
+  Widget _buildTopHeader() {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.ink,
+                size: 18,
+              ),
             ),
           ),
-        ),
-      ],
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Generate Roadmap',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                Text(
+                  'Create your step-by-step learning path',
+                  style: TextStyle(fontSize: 12, color: AppColors.muted),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              color: AppColors.primary,
+              size: 20,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -172,7 +190,7 @@ class _GenerateRoadmapScreenState extends State<GenerateRoadmapScreen> {
       decoration: BoxDecoration(
         color: AppColors.primarySoft,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.15)),
+        border: Border.all(color: AppColors.primary.withValues(alpha:  0.15)),
       ),
       child: Row(
         children: [
@@ -253,7 +271,7 @@ class _GenerateRoadmapScreenState extends State<GenerateRoadmapScreen> {
                 padding: const EdgeInsets.only(top: 12, right: 14),
                 child: Icon(
                   Icons.edit_rounded,
-                  color: AppColors.primary.withOpacity(0.5),
+                  color: AppColors.primary.withValues(alpha:  0.5),
                   size: 18,
                 ),
               ),
@@ -267,7 +285,7 @@ class _GenerateRoadmapScreenState extends State<GenerateRoadmapScreen> {
             'Be specific for a better roadmap outcome.',
             style: TextStyle(
               fontSize: 11,
-              color: AppColors.muted.withOpacity(0.8),
+              color: AppColors.muted.withValues(alpha:  0.8),
             ),
           ),
         ),
@@ -377,7 +395,7 @@ class _GenerateRoadmapScreenState extends State<GenerateRoadmapScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
-          disabledBackgroundColor: AppColors.primary.withOpacity(0.6),
+          disabledBackgroundColor: AppColors.primary.withValues(alpha:  0.6),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),

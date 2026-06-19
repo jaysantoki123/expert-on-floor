@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 
 class RoadmapPhaseCompletionScreen extends StatelessWidget {
@@ -27,56 +28,20 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F9F4),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Center(
-          child: GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.line),
-              ),
-              child: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.ink, size: 16),
-            ),
-          ),
-        ),
-        title: const Text(
-          'Phase Completed',
-          style: TextStyle(
-            color: Color(0xFF007A4A),
-            fontWeight: FontWeight.w900,
-            fontSize: 22,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(right: 20),
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.line),
-              ),
-              child: const Icon(Icons.share_outlined, color: AppColors.ink, size: 18),
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          children: [
-            Stack(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: AppColors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(context),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  child: Column(
+                    children: [
+                      Stack(
               alignment: Alignment.center,
               children: [
                 Positioned.fill(
@@ -90,12 +55,12 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                       width: 140,
                       height: 140,
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF00B67A), width: 6),
+                        border: Border.all(color: AppColors.primary, width: 6),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF00B67A).withOpacity(0.2),
+                            color: AppColors.primary.withValues(alpha:  0.15),
                             blurRadius: 30,
                             offset: const Offset(0, 10),
                           ),
@@ -103,7 +68,7 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                       ),
                       child: const Icon(
                         Icons.check_circle_rounded,
-                        color: Color(0xFF00B67A),
+                        color: AppColors.primary,
                         size: 90,
                       ),
                     ),
@@ -112,8 +77,8 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                       'Congratulations! 🎉',
                       style: TextStyle(
                         fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF007A4A),
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.ink,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -130,8 +95,8 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                       'Phase $phaseNumber – $phaseTitle',
                       style: const TextStyle(
                         fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF00B67A),
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -151,9 +116,16 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.line),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.ink.withValues(alpha:  0.04),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -179,9 +151,9 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E9),
+                color: AppColors.primarySoft,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF00B67A).withOpacity(0.1)),
+                border: Border.all(color: AppColors.primary.withValues(alpha:  0.1)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,8 +162,8 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                     'What You\'ve Achieved',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF007A4A),
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryDark,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -212,12 +184,12 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                                     height: 28,
                                     margin: const EdgeInsets.only(right: 10),
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       borderRadius: BorderRadius.circular(7),
                                     ),
                                     child: const Icon(
                                       Icons.emoji_events_outlined,
-                                      color: Color(0xFF00B67A),
+                                      color: AppColors.primary,
                                       size: 16,
                                     ),
                                   ),
@@ -242,7 +214,7 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                         width: 100,
                         height: 120,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.white,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Stack(
@@ -280,9 +252,16 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.white,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: AppColors.line),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.ink.withValues(alpha:  0.04),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,7 +270,7 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                     'Rewards Earned',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                       color: AppColors.ink,
                     ),
                   ),
@@ -300,7 +279,7 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                     children: [
                       _buildRewardItem(Icons.star_rounded, '+250 XP', 'Experience Points', const Color(0xFFFFF8E0), const Color(0xFFFFB800)),
                       const SizedBox(width: 10),
-                      _buildRewardItem(Icons.verified_rounded, 'Foundation Master', 'Badge Unlocked', const Color(0xFFE8F5E9), const Color(0xFF00B67A)),
+                      _buildRewardItem(Icons.verified_rounded, 'Foundation Master', 'Badge Unlocked', AppColors.primarySoft, AppColors.primary),
                       const SizedBox(width: 10),
                       _buildRewardItem(Icons.diamond_outlined, '+5 Gems', 'Keep Going!', const Color(0xFFE3F2FD), const Color(0xFF1565C0)),
                     ],
@@ -315,7 +294,7 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFFE3F2FD),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF1565C0).withOpacity(0.1)),
+                border: Border.all(color: const Color(0xFF1565C0).withValues(alpha:  0.1)),
               ),
               child: Row(
                 children: [
@@ -327,14 +306,14 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                           'What\'s Next?',
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
                             color: Color(0xFF1565C0),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Continue your journey with Phase ${phaseNumber + 1} – $nextPhaseTitle',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.ink,
                             fontWeight: FontWeight.w500,
@@ -348,7 +327,7 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF1565C0),
-                            foregroundColor: Colors.white,
+                            foregroundColor: AppColors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
@@ -358,7 +337,7 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                             children: [
                               Text(
                                 'View Next Phase',
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                               ),
                               SizedBox(width: 6),
                               Icon(Icons.arrow_forward_rounded, size: 15),
@@ -373,7 +352,7 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.white,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: const Icon(Icons.flag_rounded, color: Color(0xFF1565C0), size: 55),
@@ -390,8 +369,8 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                       Navigator.pop(context);
                     },
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFF00B67A)),
-                      foregroundColor: const Color(0xFF00B67A),
+                      side: const BorderSide(color: AppColors.primary),
+                      foregroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
@@ -403,7 +382,7 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                           SizedBox(width: 6),
                           Text(
                             'Back to Roadmap',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                           ),
                         ],
                       ),
@@ -417,8 +396,8 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00B67A),
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -429,7 +408,7 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Continue Learning',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                           ),
                           SizedBox(width: 10),
                           Icon(Icons.arrow_forward_rounded, size: 18),
@@ -441,8 +420,65 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-          ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // Header
+  // ══════════════════════════════════════════════════════════════
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.ink,
+                size: 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Phase Complete',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                Text(
+                  'Great work on finishing this phase',
+                  style: TextStyle(fontSize: 12, color: AppColors.muted),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -450,19 +486,19 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
   Widget _buildStatItem(IconData icon, String value, String label) {
     return Column(
       children: [
-        Icon(icon, color: const Color(0xFF00B67A), size: 24),
+        Icon(icon, color: AppColors.primary, size: 24),
         const SizedBox(height: 4),
         Text(
           value,
           style: const TextStyle(
             fontSize: 15,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
             color: AppColors.ink,
           ),
         ),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 11,
             color: AppColors.muted,
             fontWeight: FontWeight.w500,
@@ -487,7 +523,7 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.white,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: iconColor, size: 18),
@@ -497,14 +533,14 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
               title,
               style: TextStyle(
                 fontSize: 11,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
                 color: iconColor,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               subtitle,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 9,
                 color: AppColors.muted,
                 fontWeight: FontWeight.w500,
@@ -518,7 +554,7 @@ class RoadmapPhaseCompletionScreen extends StatelessWidget {
   }
 
   Widget _buildSmallConfetti() {
-    final colors = [Colors.orange, Colors.blue, Colors.amber, const Color(0xFF00B67A)];
+    final colors = [Colors.orange, Colors.blue, Colors.amber, AppColors.primary];
     return Container(
       width: 6,
       height: 6,
@@ -551,7 +587,7 @@ final confettiPositions = [
       Colors.orange,
       Colors.blue,
       Colors.amber,
-      const Color(0xFF00B67A),
+      AppColors.primary,
       Colors.purple,
     ];
 

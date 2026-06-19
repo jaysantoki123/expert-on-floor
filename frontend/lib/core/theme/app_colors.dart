@@ -15,6 +15,9 @@ class AppColors {
   /// Near-black text
   static const Color ink = Color(0xFF20232A);
 
+  /// Soft gray for UI backgrounds
+  static const Color inkSoft = Color(0xFFF5F7F6);
+
   /// Gray text
   static const Color muted = Color(0xFF7C8590);
 

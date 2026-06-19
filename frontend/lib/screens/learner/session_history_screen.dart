@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
+import 'session_detail_screen.dart';
 
 // ══════════════════════════════════════════════════════════════════
 // Data Model
@@ -508,8 +509,11 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen>
               ),
             ),
           ),
-          Row(
-            children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
               _BannerStat(
                 value: '$_totalSessions',
                 label: 'Sessions',
@@ -536,6 +540,7 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen>
               ),
             ],
           ),
+          ),
         ],
       ),
     );
@@ -560,7 +565,6 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen>
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.primary, width: 1.5),
           boxShadow: [
             BoxShadow(
               color: AppColors.primary.withValues(alpha:  0.1),
@@ -569,49 +573,51 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen>
             ),
           ],
         ),
-        child: Row(
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14),
-              child: Icon(
-                Icons.search_rounded,
-                color: AppColors.primary,
-                size: 20,
-              ),
+        child: TextField(
+          controller: _searchCtrl,
+          autofocus: true,
+          style: const TextStyle(fontSize: 14, color: AppColors.ink),
+          decoration: InputDecoration(
+            hintText: 'Search sessions, experts, topics...',
+            hintStyle: TextStyle(
+              color: AppColors.muted.withValues(alpha:  0.7),
+              fontSize: 13,
             ),
-            Expanded(
-              child: TextField(
-                controller: _searchCtrl,
-                autofocus: true,
-                style: const TextStyle(fontSize: 14, color: AppColors.ink),
-                decoration: InputDecoration(
-                  hintText: 'Search sessions, experts, topics...',
-                  hintStyle: TextStyle(
-                    color: AppColors.muted.withValues(alpha:  0.7),
-                    fontSize: 13,
-                  ),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  errorBorder: InputBorder.none,
-                  focusedErrorBorder: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 13),
-                ),
-              ),
+            prefixIcon: const Icon(
+              Icons.search_rounded,
+              color: AppColors.primary,
+              size: 20,
             ),
-            if (_searchQuery.isNotEmpty)
-              GestureDetector(
-                onTap: () => _searchCtrl.clear(),
-                child: const Padding(
-                  padding: EdgeInsets.only(right: 12),
-                  child: Icon(
-                    Icons.close_rounded,
-                    color: AppColors.muted,
-                    size: 18,
-                  ),
-                ),
-              ),
-          ],
+            prefixIconConstraints: const BoxConstraints(minWidth: 48),
+            suffixIcon: _searchQuery.isNotEmpty
+                ? GestureDetector(
+                    onTap: () => _searchCtrl.clear(),
+                    child: const Padding(
+                      padding: EdgeInsets.only(right: 12),
+                      child: Icon(
+                        Icons.close_rounded,
+                        color: AppColors.muted,
+                        size: 18,
+                      ),
+                    ),
+                  )
+                : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            errorBorder: InputBorder.none,
+            focusedErrorBorder: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 13, horizontal: 10),
+          ),
         ),
       ),
     );
@@ -871,7 +877,8 @@ class _BannerStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
         children: [
           Icon(icon, color: iconColor, size: 18),
@@ -1417,16 +1424,17 @@ class _SessionCardState extends State<_SessionCard> {
           // Action buttons
           Row(
             children: [
-              if (session.hasRecording)
-                Expanded(
-                  child: _actionBtn(
-                    icon: Icons.play_circle_outline_rounded,
-                    label: 'Watch Recording',
-                    color: Colors.deepPurple,
-                    onTap: () {},
+              Expanded(
+                child: _actionBtn(
+                  icon: Icons.visibility_outlined,
+                  label: 'View Session',
+                  color: Colors.deepPurple,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SessionDetailScreen()),
                   ),
                 ),
-              if (session.hasRecording) const SizedBox(width: 8),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: _actionBtn(
                   icon: Icons.refresh_rounded,

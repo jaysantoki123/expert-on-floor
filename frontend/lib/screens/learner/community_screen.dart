@@ -5,9 +5,7 @@ import 'ask_question_screen.dart';
 import 'question_detail_screen.dart';
 
 
-// ══════════════════════════════════════════════════════════════════
-// Data Model
-// ══════════════════════════════════════════════════════════════════
+
 class CommunityQuestion {
   final String id;
   final String title;
@@ -174,9 +172,6 @@ final List<CommunityQuestion> _allQuestions = [
   ),
 ];
 
-// ══════════════════════════════════════════════════════════════════
-// Community Screen
-// ══════════════════════════════════════════════════════════════════
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
 
@@ -227,7 +222,7 @@ class _CommunityScreenState extends State<CommunityScreen>
     super.dispose();
   }
 
-  // ── Filtered lists ─────────────────────────────────────────────
+  // â”€â”€ Filtered lists â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<CommunityQuestion> _applySearch(List<CommunityQuestion> list) {
     if (_searchQuery.isEmpty && _selectedTag == 'All') return list;
     return list.where((q) {
@@ -255,23 +250,18 @@ class _CommunityScreenState extends State<CommunityScreen>
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
+        extendBody: true,
         backgroundColor: const Color(0xFFF4F6F4),
         body: SafeArea(
           child: Column(
             children: [
-              // ── Header ────────────────────────────
+             
               _buildHeader(),
-
-              // ── Search Bar ────────────────────────
               if (_showSearch) _buildSearchBar(),
-
-              // ── Tag chips ─────────────────────────
               _buildTagChips(),
-
-              // ── Tab Bar ───────────────────────────
               _buildTabBar(),
 
-              // ── Content ───────────────────────────
+              // â”€â”€ Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
@@ -306,31 +296,13 @@ class _CommunityScreenState extends State<CommunityScreen>
           ),
         ),
 
-        // ── Ask FAB ───────────────────────────────
-        floatingActionButton: FloatingActionButton.extended(
-          heroTag: 'community_fab',
-          onPressed: () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const AskQuestionScreen())),
-          backgroundColor: AppColors.primary,
-          elevation: 4,
-          icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-          label: const Text(
-            'Ask Question',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
+        
+
       ),
     );
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // Header
-  // ══════════════════════════════════════════════════════════════
+ 
   Widget _buildHeader() {
     return Container(
       color: AppColors.white,
@@ -345,10 +317,10 @@ class _CommunityScreenState extends State<CommunityScreen>
                 Text(
                   'Community',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 22,
                     fontWeight: FontWeight.w800,
                     color: AppColors.ink,
-                    letterSpacing: -0.5,
+                    letterSpacing: -0.4,
                   ),
                 ),
                 Text(
@@ -358,7 +330,27 @@ class _CommunityScreenState extends State<CommunityScreen>
               ],
             ),
           ),
-
+          // Ask Question button
+          GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AskQuestionScreen()),
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.add_rounded, color: Colors.white, size: 16),
+                  SizedBox(width: 4),
+                  Text('Ask', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           // Search toggle
           _HeaderBtn(
             icon: _showSearch ? Icons.close_rounded : Icons.search_rounded,
@@ -374,7 +366,6 @@ class _CommunityScreenState extends State<CommunityScreen>
             },
           ),
           const SizedBox(width: 8),
-
           // Notifications
           _HeaderBtn(
             icon: Icons.notifications_outlined,
@@ -386,9 +377,10 @@ class _CommunityScreenState extends State<CommunityScreen>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // Search Bar
-  // ══════════════════════════════════════════════════════════════
+  
+
+
+
   Widget _buildSearchBar() {
     return Container(
       color: AppColors.white,
@@ -405,7 +397,7 @@ class _CommunityScreenState extends State<CommunityScreen>
           boxShadow: _searchFocused
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha:  0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -431,10 +423,11 @@ class _CommunityScreenState extends State<CommunityScreen>
                 decoration: InputDecoration(
                   hintText: 'Search questions, tags...',
                   hintStyle: TextStyle(
-                    color: AppColors.muted.withOpacity(0.7),
+                    color: AppColors.muted.withValues(alpha:  0.7),
                     fontSize: 14,
                   ),
-                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
               ),
@@ -451,7 +444,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                     width: 20,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: AppColors.muted.withOpacity(0.2),
+                      color: AppColors.muted.withValues(alpha:  0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -468,9 +461,7 @@ class _CommunityScreenState extends State<CommunityScreen>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // Tag Chips
-  // ══════════════════════════════════════════════════════════════
+ 
   Widget _buildTagChips() {
     return Container(
       color: AppColors.white,
@@ -504,7 +495,7 @@ class _CommunityScreenState extends State<CommunityScreen>
                       boxShadow: selected
                           ? [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.25),
+                                color: AppColors.primary.withValues(alpha:  0.25),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -531,9 +522,7 @@ class _CommunityScreenState extends State<CommunityScreen>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // Tab Bar
-  // ══════════════════════════════════════════════════════════════
+  
   Widget _buildTabBar() {
     return Container(
       color: AppColors.white,
@@ -592,7 +581,7 @@ class _CommunityScreenState extends State<CommunityScreen>
     );
   }
 
-  // ── Actions ────────────────────────────────────────────────────
+  // â”€â”€ Actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void _toggleLike(int globalIndex) {
     setState(() => _likedStates[globalIndex] = !_likedStates[globalIndex]);
   }
@@ -604,9 +593,7 @@ class _CommunityScreenState extends State<CommunityScreen>
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Question List
-// ══════════════════════════════════════════════════════════════════
+
 class _QuestionList extends StatelessWidget {
   final List<CommunityQuestion> questions;
   final List<bool> likedStates;
@@ -701,9 +688,7 @@ class _QuestionList extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Question Tile  (matches the image design)
-// ══════════════════════════════════════════════════════════════════
+
 class _QuestionTile extends StatelessWidget {
   final CommunityQuestion question;
   final bool isLiked;
@@ -722,14 +707,14 @@ class _QuestionTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       splashColor: AppColors.primarySoft,
-      highlightColor: AppColors.primarySoft.withOpacity(0.3),
+      highlightColor: AppColors.primarySoft.withValues(alpha:  0.3),
       child: Container(
         color: AppColors.white,
         padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Avatar column ─────────────────────
+            // â”€â”€ Avatar column â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Column(
               children: [
                 Container(
@@ -740,7 +725,7 @@ class _QuestionTile extends StatelessWidget {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: question.authorColor.withOpacity(0.3),
+                        color: question.authorColor.withValues(alpha:  0.3),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
@@ -756,12 +741,12 @@ class _QuestionTile extends StatelessWidget {
             ),
             const SizedBox(width: 12),
 
-            // ── Content ───────────────────────────
+            
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Pinned / answered badges
+               
                   if (question.isPinned || question.isAnswered)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 6),
@@ -809,7 +794,7 @@ class _QuestionTile extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '  ·  ${question.timeAgo}',
+                        '  Â·  ${question.timeAgo}',
                         style: TextStyle(fontSize: 11, color: AppColors.muted),
                       ),
                     ],
@@ -838,7 +823,7 @@ class _QuestionTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '·',
+                        'Â·',
                         style: TextStyle(color: AppColors.muted, fontSize: 12),
                       ),
                       const SizedBox(width: 4),
@@ -860,7 +845,7 @@ class _QuestionTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '·',
+                        'Â·',
                         style: TextStyle(color: AppColors.muted, fontSize: 12),
                       ),
                       const SizedBox(width: 4),
@@ -875,7 +860,7 @@ class _QuestionTile extends StatelessWidget {
               ),
             ),
 
-            // ── Right arrow ───────────────────────
+           
             const SizedBox(width: 8),
             const Icon(
               Icons.chevron_right_rounded,
@@ -896,9 +881,9 @@ class _QuestionTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha:  0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha:  0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -943,9 +928,7 @@ class _QuestionTile extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Tag Pill
-// ══════════════════════════════════════════════════════════════════
+
 class _TagPill extends StatelessWidget {
   final String tag;
 
@@ -968,9 +951,9 @@ class _TagPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha:  0.1),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha:  0.25)),
       ),
       child: Text(
         tag,
@@ -984,9 +967,7 @@ class _TagPill extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Header Button
-// ══════════════════════════════════════════════════════════════════
+
 class _HeaderBtn extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -1041,3 +1022,4 @@ class _HeaderBtn extends StatelessWidget {
     );
   }
 }
+

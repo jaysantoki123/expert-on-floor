@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/expert_model.dart';
+import 'booking_summary_screen.dart';
 
 class ExpertProfileScreen extends StatefulWidget {
   final ExpertModel expert;
@@ -15,6 +17,38 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isBookmarked = false;
+  DateTime _selectedDate = DateTime.now();
+  String? _selectedTime;
+  String? _selectedDateStr;
+
+  // Sample available dates
+  final List<DateTime> _availableDates = [
+    DateTime.now(),
+    DateTime.now().add(const Duration(days: 1)),
+    DateTime.now().add(const Duration(days: 3)),
+    DateTime.now().add(const Duration(days: 5)),
+    DateTime.now().add(const Duration(days: 7)),
+  ];
+
+  // Sample time slots by date
+  final Map<String, List<String>> _timeSlots = {
+    DateTime.now().toString().substring(0, 10): [
+      '10:00 AM',
+      '12:00 PM',
+      '3:00 PM',
+      '5:00 PM',
+    ],
+    DateTime.now().add(const Duration(days: 1)).toString().substring(0, 10): [
+      '11:00 AM',
+      '2:00 PM',
+      '4:00 PM',
+    ],
+    DateTime.now().add(const Duration(days: 3)).toString().substring(0, 10): [
+      '10:30 AM',
+      '1:30 PM',
+      '6:00 PM',
+    ],
+  };
 
   @override
   void initState() {
@@ -745,50 +779,139 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
   }
 
   Widget _buildSessionsTab() {
-    final slots = [
-      _SlotData(
-        date: '17 May, 2026',
-        time: '10:00 AM',
-        duration: '60 min',
-        type: 'Video Call',
-      ),
-      _SlotData(
-        date: '17 May, 2026',
-        time: '12:00 PM',
-        duration: '30 min',
-        type: 'Audio Call',
-      ),
-      _SlotData(
-        date: '17 May, 2026',
-        time: '3:00 PM',
-        duration: '60 min',
-        type: 'Video Call',
-      ),
-      _SlotData(
-        date: '18 May, 2026',
-        time: '11:00 AM',
-        duration: '90 min',
-        type: 'Video Call',
-      ),
-      _SlotData(
-        date: '18 May, 2026',
-        time: '2:00 PM',
-        duration: '60 min',
-        type: 'Chat',
-      ),
-    ];
+    final dateStr = _selectedDate.toString().substring(0, 10);
+    final times = _timeSlots[dateStr] ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _sectionLabel('Select Date'),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.line),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12),
+            ],
+          ),
+          child: TableCalendar(
+            firstDay: DateTime.now(),
+            lastDay: DateTime.now().add(const Duration(days: 30)),
+            focusedDay: _selectedDate,
+            selectedDayPredicate: (day) => isSameDay(_selectedDate, day),
+            enabledDayPredicate: (day) {
+              return _availableDates.any((d) => isSameDay(d, day));
+            },
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDate = selectedDay;
+                _selectedTime = null;
+                _selectedDateStr = '${selectedDay.day} ${_getMonthName(selectedDay.month)}, ${selectedDay.year}';
+              });
+            },
+            calendarStyle: CalendarStyle(
+              todayDecoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.3),
+                shape: BoxShape.circle,
+              ),
+              selectedDecoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+              selectedTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+              disabledDecoration: const BoxDecoration(),
+              disabledTextStyle: TextStyle(color: AppColors.muted.withValues(alpha: 0.3)),
+            ),
+            headerStyle: const HeaderStyle(
+              formatButtonVisible: false,
+              titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.ink),
+              leftChevronIcon: Icon(Icons.chevron_left_rounded, color: AppColors.ink),
+              rightChevronIcon: Icon(Icons.chevron_right_rounded, color: AppColors.ink),
+            ),
+            calendarBuilders: CalendarBuilders(
+              disabledBuilder: (context, day, focusedDay) {
+                return Center(
+                  child: Text(
+                    '${day.day}',
+                    style: TextStyle(color: AppColors.muted.withValues(alpha: 0.3)),
+                  ),
+                );
+              },
+              defaultBuilder: (context, day, focusedDay) {
+                final isAvailable = _availableDates.any((d) => isSameDay(d, day));
+                return Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isAvailable ? AppColors.primarySoft.withValues(alpha: 0.3) : Colors.transparent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      '${day.day}',
+                      style: TextStyle(color: isAvailable ? AppColors.primary : AppColors.muted, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
         _sectionLabel('Available Slots'),
         const SizedBox(height: 12),
-        ...slots.map((s) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _SlotCard(slot: s),
-            )),
+        if (times.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.line),
+            ),
+            child: Column(
+              children: [
+                Icon(Icons.event_busy_rounded, color: AppColors.muted, size: 48),
+                const SizedBox(height: 12),
+                Text(
+                  'No slots available for this date',
+                  style: TextStyle(fontSize: 14, color: AppColors.muted),
+                ),
+              ],
+            ),
+          )
+        else
+          ...times.map((time) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _SlotCard(
+                  slot: _SlotData(
+                    date: '${_selectedDate.day} ${_getMonthName(_selectedDate.month)}, ${_selectedDate.year}',
+                    time: time,
+                    duration: '60 min',
+                    type: 'Video Call',
+                  ),
+                  isSelected: _selectedTime == time,
+                  onTap: () {
+                    setState(() {
+                      _selectedTime = time;
+                      _selectedDateStr = '${_selectedDate.day} ${_getMonthName(_selectedDate.month)}, ${_selectedDate.year}';
+                    });
+                    // Automatically open the booking sheet with the selected slot
+                    _showBookingSheet(context);
+                  },
+                ),
+              )),
       ],
     );
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month - 1];
   }
 
   Widget _buildBottomActions(BuildContext context) {
@@ -892,7 +1015,12 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (_) => _BookingSheet(expert: widget.expert),
+      builder: (_) => _BookingSheet(
+        expert: widget.expert,
+        initialDate: _selectedDateStr,
+        initialTime: _selectedTime,
+        availableTimes: _timeSlots[_selectedDate.toString().substring(0, 10)] ?? [],
+      ),
     );
   }
 
@@ -1018,34 +1146,33 @@ class _SlotData {
   });
 }
 
-class _SlotCard extends StatefulWidget {
+class _SlotCard extends StatelessWidget {
   final _SlotData slot;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  const _SlotCard({required this.slot});
-
-  @override
-  State<_SlotCard> createState() => _SlotCardState();
-}
-
-class _SlotCardState extends State<_SlotCard> {
-  bool _selected = false;
+  const _SlotCard({
+    required this.slot,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => setState(() => _selected = !_selected),
+      onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: _selected ? AppColors.primarySoft : AppColors.white,
+          color: isSelected ? AppColors.primarySoft : AppColors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: _selected ? AppColors.primary : AppColors.line,
-            width: _selected ? 2 : 1,
+            color: isSelected ? AppColors.primary : AppColors.line,
+            width: isSelected ? 2 : 1,
           ),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha:  0.04), blurRadius: 8),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8),
           ],
         ),
         child: Row(
@@ -1054,27 +1181,27 @@ class _SlotCardState extends State<_SlotCard> {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: _selected ? AppColors.primary : AppColors.primarySoft,
+                color: isSelected ? AppColors.primary : AppColors.primarySoft,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    widget.slot.date.split(',')[0].split(' ')[0],
+                    slot.date.split(',')[0].split(' ')[0],
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: _selected ? AppColors.white : AppColors.primary,
+                      color: isSelected ? AppColors.white : AppColors.primary,
                     ),
                   ),
                   Text(
-                    widget.slot.date.split(' ')[1].replaceAll(',', ''),
+                    slot.date.split(' ')[1].replaceAll(',', ''),
                     style: TextStyle(
                       fontSize: 9,
                       fontWeight: FontWeight.w600,
-                      color: _selected
-                          ? AppColors.white.withValues(alpha:  0.8)
+                      color: isSelected
+                          ? AppColors.white.withValues(alpha: 0.8)
                           : AppColors.primary,
                     ),
                   ),
@@ -1087,7 +1214,7 @@ class _SlotCardState extends State<_SlotCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.slot.time,
+                    slot.time,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -1097,9 +1224,9 @@ class _SlotCardState extends State<_SlotCard> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      _slotTag(widget.slot.duration, Icons.timer_outlined),
+                      _slotTag(slot.duration, Icons.timer_outlined),
                       const SizedBox(width: 10),
-                      _slotTag(widget.slot.type, Icons.videocam_outlined),
+                      _slotTag(slot.type, Icons.videocam_outlined),
                     ],
                   ),
                 ],
@@ -1110,14 +1237,14 @@ class _SlotCardState extends State<_SlotCard> {
               width: 28,
               height: 28,
               decoration: BoxDecoration(
-                color: _selected ? AppColors.primary : Colors.transparent,
+                color: isSelected ? AppColors.primary : Colors.transparent,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: _selected ? AppColors.primary : AppColors.line,
+                  color: isSelected ? AppColors.primary : AppColors.line,
                   width: 2,
                 ),
               ),
-              child: _selected
+              child: isSelected
                   ? const Icon(
                       Icons.check_rounded,
                       color: AppColors.white,
@@ -1144,8 +1271,16 @@ class _SlotCardState extends State<_SlotCard> {
 
 class _BookingSheet extends StatefulWidget {
   final ExpertModel expert;
+  final String? initialDate;
+  final String? initialTime;
+  final List<String> availableTimes;
 
-  const _BookingSheet({required this.expert});
+  const _BookingSheet({
+    required this.expert,
+    this.initialDate,
+    this.initialTime,
+    required this.availableTimes,
+  });
 
   @override
   State<_BookingSheet> createState() => _BookingSheetState();
@@ -1154,11 +1289,18 @@ class _BookingSheet extends StatefulWidget {
 class _BookingSheetState extends State<_BookingSheet> {
   String _selectedType = 'Video Call';
   String _selectedDuration = '60 min';
-  int _selectedSlot = 0;
+  String? _selectedTime;
+  String? _selectedDate;
 
   final _types = ['Video Call', 'Audio Call', 'Chat'];
   final _durations = ['30 min', '60 min', '90 min'];
-  final _times = ['10:00 AM', '12:00 PM', '3:00 PM', '5:00 PM'];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTime = widget.initialTime;
+    _selectedDate = widget.initialDate;
+  }
 
   int get _totalPrice {
     final base = widget.expert.pricePerHour;
@@ -1285,40 +1427,84 @@ class _BookingSheetState extends State<_BookingSheet> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 24),
+              if (_selectedDate != null) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySoft,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.line),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.calendar_today_rounded, color: AppColors.primary, size: 20),
+                      const SizedBox(width: 12),
+                      Text(
+                        _selectedDate!,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
               _sheetLabel('Select Time'),
               const SizedBox(height: 12),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: _times.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final time = entry.value;
-                  final sel = _selectedSlot == index;
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedSlot = index),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: sel ? AppColors.primary : AppColors.field,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: sel ? AppColors.primary : AppColors.line,
+              if (widget.availableTimes.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.field,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.line),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.event_busy_rounded, color: AppColors.muted, size: 40),
+                      const SizedBox(height: 10),
+                      Text(
+                        'No time slots available',
+                        style: TextStyle(fontSize: 14, color: AppColors.muted),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: widget.availableTimes.map((time) {
+                    final sel = _selectedTime == time;
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedTime = time),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: sel ? AppColors.primary : AppColors.field,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: sel ? AppColors.primary : AppColors.line,
+                          ),
+                        ),
+                        child: Text(
+                          time,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: sel ? AppColors.white : AppColors.ink,
+                          ),
                         ),
                       ),
-                      child: Text(
-                        time,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: sel ? AppColors.white : AppColors.ink,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
+                    );
+                  }).toList(),
+                ),
               const SizedBox(height: 32),
               Container(
                 padding: const EdgeInsets.all(20),
@@ -1352,7 +1538,22 @@ class _BookingSheetState extends State<_BookingSheet> {
                     ),
                     const Spacer(),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.pop(context); // Close sheet
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => BookingSummaryScreen(
+                              expert: widget.expert,
+                              date: _selectedDate ?? 'Not selected',
+                              time: _selectedTime ?? 'Not selected',
+                              sessionType: _selectedType,
+                              duration: _selectedDuration,
+                              sessionFee: _totalPrice,
+                            ),
+                          ),
+                        );
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                         decoration: BoxDecoration(
