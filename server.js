@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
+import { initSocket } from './socket.js';
 
 import authRoutes from './routes/auth_routes.js';
 import expertRoutes from './routes/expert_routes.js';
@@ -1016,11 +1018,11 @@ const swaggerSpec = {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(express.json());
 app.use(cors({
-    origin: ['http://localhost', 'http://localhost:3000', 'http://localhost:5173'],
+    origin: true,
     credentials: true
 }));
+app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
 
@@ -1046,13 +1048,16 @@ app.use('/v1/roadmap', aiRoutes);
 app.use('/v1/ai', aiRoutes);
 app.use('/v1', chatRoutes);
 
+const server = createServer(app);
+
 async function startServer() {
     try {
         await syncDB();
-        app.listen(PORT, () => {
+        server.listen(PORT, () => {
             console.log(`\n🚀 Expert Mentor Server running on port ${PORT}`);
             console.log(`📚 Swagger Docs: http://localhost:${PORT}/api-docs\n`);
         });
+        initSocket(server);
     } catch (error) {
         console.error('Failed to start:', error);
     }

@@ -9,6 +9,7 @@ import '../logger_factory.dart';
 
 class AuthService {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: ApiConstants.googleClientId,
     scopes: ['email'],
     // IMPORTANT: Use the WEB CLIENT ID from Google Cloud Console
     serverClientId: ApiConstants.googleClientId,

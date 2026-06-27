@@ -56,42 +56,70 @@ export const getMessages = async (req, res) => {
   }
 };
 
+export const createMessage = async (senderId, { conversationId, recipientId, text }) => {
+  let convId = conversationId;
+
+  if (!convId && recipientId) {
+    // Find or create conversation
+    let conversation = await Conversation.findOne({
+      where: {
+        [Op.or]: [
+          { participant1Id: senderId, participant2Id: recipientId },
+          { participant1Id: recipientId, participant2Id: senderId }
+        ]
+      }
+    });
+
+    if (!conversation) {
+      conversation = await Conversation.create({
+        participant1Id: senderId,
+        participant2Id: recipientId
+      });
+    }
+    convId = conversation.id;
+  }
+
+  const message = await Message.create({
+    conversationId: convId,
+    senderId,
+    text,
+    type: 'text'
+  });
+
+  await Conversation.update(
+    { lastMessage: text, lastMessageAt: new Date() },
+    { where: { id: convId } }
+  );
+
+  const fullMessage = await Message.findByPk(message.id, {
+    include: [{ model: User, as: 'sender', attributes: ['id', 'name', 'profileImage'] }]
+  });
+
+  return { message: fullMessage, conversationId: convId };
+};
+
 export const sendMessage = async (req, res) => {
   try {
     const { conversationId, text, recipientId } = req.body;
-    let convId = conversationId;
+    const { message, conversationId: finalConvId } = await createMessage(req.user.id, { conversationId, recipientId, text });
 
-    if (!convId && recipientId) {
-      // Find or create conversation
-      let conversation = await Conversation.findOne({
-        where: {
-          [Op.or]: [
-            { participant1Id: req.user.id, participant2Id: recipientId },
-            { participant1Id: recipientId, participant2Id: req.user.id }
-          ]
-        }
+    // Broadcast message via Socket.io if active
+    if (global.io) {
+      const conversation = await Conversation.findByPk(finalConvId);
+      const targetUserId = conversation.participant1Id === req.user.id 
+        ? conversation.participant2Id 
+        : conversation.participant1Id;
+
+      global.io.to(`conversation_${finalConvId}`).emit('receive_message', message);
+      global.io.to(`user_${targetUserId}`).emit('receive_message', message);
+      
+      global.io.to(`user_${targetUserId}`).emit('conversation_updated', {
+        conversationId: finalConvId,
+        lastMessage: text,
+        lastMessageAt: new Date(),
+        senderId: req.user.id
       });
-
-      if (!conversation) {
-        conversation = await Conversation.create({
-          participant1Id: req.user.id,
-          participant2Id: recipientId
-        });
-      }
-      convId = conversation.id;
     }
-
-    const message = await Message.create({
-      conversationId: convId,
-      senderId: req.user.id,
-      text,
-      type: 'text'
-    });
-
-    await Conversation.update(
-      { lastMessage: text, lastMessageAt: new Date() },
-      { where: { id: convId } }
-    );
 
     res.status(201).json({ success: true, data: message });
   } catch (error) {

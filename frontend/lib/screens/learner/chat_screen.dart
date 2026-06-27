@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/chat_provider.dart';
+import '../../models/chat_models.dart';
 import 'conversations_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -22,64 +26,9 @@ class _ChatScreenState extends State<ChatScreen>
   bool _isTyping = false;
   bool _showEmoji = false;
 
-  late List<_Message> _messages;
-
   @override
   void initState() {
     super.initState();
-
-    _messages = [
-      _Message(
-        text: 'Hello! How can I help you today? 👋',
-        isSent: false,
-        time: '10:00 AM',
-        status: 'read',
-      ),
-      _Message(
-        text: 'Hi! I wanted to ask about Flutter state management.',
-        isSent: true,
-        time: '10:02 AM',
-        status: 'read',
-      ),
-      _Message(
-        text:
-            'Great question! There are several approaches:\n• Provider\n• Riverpod\n• BLoC\n• GetX',
-        isSent: false,
-        time: '10:03 AM',
-        status: 'read',
-      ),
-      _Message(
-        text: 'Which one would you recommend for a beginner?',
-        isSent: true,
-        time: '10:05 AM',
-        status: 'read',
-      ),
-      _Message(
-        text:
-            'I\'d recommend starting with Provider. It\'s officially recommended by Flutter and has great documentation! 📚',
-        isSent: false,
-        time: '10:06 AM',
-        status: 'read',
-      ),
-      _Message(
-        text: 'That makes sense! Can we schedule a session for this?',
-        isSent: true,
-        time: '10:10 AM',
-        status: 'read',
-      ),
-      _Message(
-        text: 'Of course! I have slots available this weekend.',
-        isSent: false,
-        time: '10:11 AM',
-        status: 'read',
-      ),
-      _Message(
-        text: 'Great session! 🎉',
-        isSent: true,
-        time: '10:15 AM',
-        status: 'delivered',
-      ),
-    ];
 
     _focusNode.addListener(
       () => setState(() => _isFocused = _focusNode.hasFocus),
@@ -87,7 +36,11 @@ class _ChatScreenState extends State<ChatScreen>
 
     _msgCtrl.addListener(() {
       final typing = _msgCtrl.text.isNotEmpty;
-      if (typing != _isTyping) setState(() => _isTyping = typing);
+      if (typing != _isTyping) {
+        setState(() => _isTyping = typing);
+        final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+        chatProvider.setTyping(typing);
+      }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
@@ -95,6 +48,10 @@ class _ChatScreenState extends State<ChatScreen>
 
   @override
   void dispose() {
+    // Notify server we stopped typing before leaving
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    chatProvider.setTyping(false);
+
     _msgCtrl.dispose();
     _scrollCtrl.dispose();
     _focusNode.dispose();
@@ -115,57 +72,30 @@ class _ChatScreenState extends State<ChatScreen>
     final text = _msgCtrl.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      _messages.add(
-        _Message(
-          text: text,
-          isSent: true,
-          time: _currentTime(),
-          status: 'sent',
-        ),
-      );
-      _msgCtrl.clear();
-    });
-
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    chatProvider.sendMessage(text);
+    _msgCtrl.clear();
     _scrollToBottom();
-
-    // Simulate reply
-    Future.delayed(const Duration(milliseconds: 1200), () {
-      if (mounted) {
-        setState(() {
-          _messages.add(
-            _Message(
-              text: _autoReply(text),
-              isSent: false,
-              time: _currentTime(),
-              status: 'read',
-            ),
-          );
-        });
-        _scrollToBottom();
-      }
-    });
   }
 
-  String _currentTime() {
-    final now = DateTime.now();
-    final h = now.hour > 12 ? now.hour - 12 : now.hour;
-    final m = now.minute.toString().padLeft(2, '0');
-    final period = now.hour >= 12 ? 'PM' : 'AM';
-    return '$h:$m $period';
+  _Message _mapToUIMessage(MessageModel realMsg, int currentUserId) {
+    final isSent = realMsg.senderId == currentUserId;
+    final timeStr = _formatTimestamp(realMsg.createdAt);
+    final status = realMsg.isRead ? 'read' : 'delivered';
+
+    return _Message(
+      text: realMsg.text,
+      isSent: isSent,
+      time: timeStr,
+      status: status,
+    );
   }
 
-  String _autoReply(String text) {
-    final lower = text.toLowerCase();
-    if (lower.contains('session') || lower.contains('book')) {
-      return 'Sure! Let me check my availability for you. 📅';
-    } else if (lower.contains('thank')) {
-      return 'You\'re welcome! Happy to help anytime 😊';
-    } else if (lower.contains('help')) {
-      return 'Of course! What specifically can I help you with?';
-    } else {
-      return 'Got it! Let me know if you have more questions. 👍';
-    }
+  String _formatTimestamp(DateTime dateTime) {
+    final hour = dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
   }
 
   @override
@@ -258,17 +188,33 @@ class _ChatScreenState extends State<ChatScreen>
                             color: AppColors.ink,
                           ),
                         ),
-                        Text(
-                          widget.conversation.isOnline
-                              ? 'Online now'
-                              : 'Last seen recently',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: widget.conversation.isOnline
-                                ? const Color(0xFF4CAF50)
-                                : AppColors.muted,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        Consumer<ChatProvider>(
+                          builder: (context, chatProvider, child) {
+                            final typingStatus = chatProvider.getTypingStatus(int.tryParse(widget.conversation.id) ?? 0);
+                            if (typingStatus != null) {
+                              return const Text(
+                                'Typing...',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              );
+                            }
+                            return Text(
+                              widget.conversation.isOnline
+                                  ? 'Online now'
+                                  : 'Last seen recently',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: widget.conversation.isOnline
+                                    ? const Color(0xFF4CAF50)
+                                    : AppColors.muted,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -307,19 +253,28 @@ class _ChatScreenState extends State<ChatScreen>
 
   // ── Messages ───────────────────────────────────────────────────
   Widget _buildMessages() {
+    final chatProvider = Provider.of<ChatProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUserId = int.tryParse(authProvider.user?.id ?? '') ?? 0;
+
+    final mappedMsgs = chatProvider.messages.map((m) => _mapToUIMessage(m, currentUserId)).toList();
+
+    // Scroll to bottom when message list updates
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+
     return ListView.builder(
       controller: _scrollCtrl,
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       physics: const BouncingScrollPhysics(),
-      itemCount: _messages.length,
+      itemCount: mappedMsgs.length,
       itemBuilder: (_, i) {
-        final msg = _messages[i];
-        final prev = i > 0 ? _messages[i - 1] : null;
+        final msg = mappedMsgs[i];
+        final prev = i > 0 ? mappedMsgs[i - 1] : null;
         final showTime = prev == null || prev.isSent != msg.isSent;
 
         return Column(
           children: [
-            if (i == 0) _DateLabel(label: 'Today'),
+            if (i == 0) const _DateLabel(label: 'Today'),
             _MessageBubble(
               message: msg,
               showAvatar: !msg.isSent && showTime,
@@ -398,7 +353,7 @@ class _ChatScreenState extends State<ChatScreen>
                           decoration: InputDecoration(
                             hintText: 'Type a message...',
                             hintStyle: TextStyle(
-                              color: AppColors.muted.withValues(alpha:  0.7),
+                              color: AppColors.muted.withOpacity(0.7),
                               fontSize: 14,
                             ),
                             border: InputBorder.none,
@@ -408,14 +363,13 @@ class _ChatScreenState extends State<ChatScreen>
                           ),
                         ),
                       ),
-                      // Emoji
                       GestureDetector(
                         onTap: () => setState(() => _showEmoji = !_showEmoji),
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 10, bottom: 10),
+                        child: const Padding(
+                          padding: EdgeInsets.only(right: 10, bottom: 10),
                           child: Text(
                             '😊',
-                            style: const TextStyle(fontSize: 20),
+                            style: TextStyle(fontSize: 20),
                           ),
                         ),
                       ),
@@ -438,7 +392,7 @@ class _ChatScreenState extends State<ChatScreen>
                     boxShadow: _isTyping
                         ? [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha:  0.35),
+                              color: AppColors.primary.withOpacity(0.35),
                               blurRadius: 10,
                               offset: const Offset(0, 3),
                             ),
@@ -522,9 +476,9 @@ class _ChatScreenState extends State<ChatScreen>
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: color.withValues(alpha:  0.1),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: color.withValues(alpha:  0.25)),
+              border: Border.all(color: color.withOpacity(0.25)),
             ),
             child: Icon(icon, color: color, size: 26),
           ),
@@ -598,7 +552,7 @@ class _ChatScreenState extends State<ChatScreen>
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: color.withValues(alpha:  0.1),
+          color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Icon(icon, color: color, size: 20),
@@ -657,7 +611,6 @@ class _MessageBubble extends StatelessWidget {
             : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Received avatar
           if (!message.isSent) ...[
             if (showAvatar)
               Container(
@@ -673,8 +626,6 @@ class _MessageBubble extends StatelessWidget {
               const SizedBox(width: 28),
             const SizedBox(width: 8),
           ],
-
-          // Bubble
           Flexible(
             child: GestureDetector(
               onLongPress: () {},
@@ -696,7 +647,7 @@ class _MessageBubble extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha:  0.06),
+                      color: Colors.black.withOpacity(0.06),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -724,7 +675,7 @@ class _MessageBubble extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 10,
                             color: message.isSent
-                                ? Colors.white.withValues(alpha:  0.7)
+                                ? Colors.white.withOpacity(0.7)
                                 : AppColors.muted,
                           ),
                         ),
@@ -733,13 +684,11 @@ class _MessageBubble extends StatelessWidget {
                           Icon(
                             message.status == 'read'
                                 ? Icons.done_all_rounded
-                                : message.status == 'delivered'
-                                ? Icons.done_all_rounded
-                                : Icons.done_rounded,
+                                : Icons.done_all_rounded,
                             size: 13,
                             color: message.status == 'read'
                                 ? Colors.lightBlueAccent
-                                : Colors.white.withValues(alpha:  0.7),
+                                : Colors.white.withOpacity(0.7),
                           ),
                         ],
                       ],
@@ -749,7 +698,6 @@ class _MessageBubble extends StatelessWidget {
               ),
             ),
           ),
-
           if (message.isSent) const SizedBox(width: 4),
         ],
       ),
@@ -757,12 +705,6 @@ class _MessageBubble extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Date Label
-// ══════════════════════════════════════════════════════════════════
-// ══════════════════════════════════════════════════════════════════
-// Avatar Content
-// ══════════════════════════════════════════════════════════════════
 class _AvatarContent extends StatelessWidget {
   final ConversationModel conv;
 
@@ -793,9 +735,6 @@ class _AvatarContent extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Date Label
-// ══════════════════════════════════════════════════════════════════
 class _DateLabel extends StatelessWidget {
   final String label;
   const _DateLabel({required this.label});

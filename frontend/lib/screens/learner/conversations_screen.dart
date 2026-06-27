@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/chat_provider.dart';
+import '../../providers/expert_provider.dart';
+import '../../models/chat_models.dart';
+import '../../models/expert_model.dart';
 import 'chat_screen.dart';
 
 // ══════════════════════════════════════════════════════════════════
-// Data Model
+// Data Model for UI Compatibility
 // ══════════════════════════════════════════════════════════════════
 class ConversationModel {
   final String id;
@@ -33,88 +39,6 @@ class ConversationModel {
     required this.role,
   });
 }
-
-final List<ConversationModel> _dummyConversations = [
-  ConversationModel(
-    id: '1',
-    name: 'Rahul Sharma',
-    lastMessage: 'Great session! 🎉',
-    time: '10 May',
-    unreadCount: 2,
-    isOnline: true,
-    isTyping: false,
-    avatarColor: const Color(0xFF5C6BC0),
-    role: 'Senior Flutter Developer',
-  ),
-  ConversationModel(
-    id: '2',
-    name: 'Amit Verma',
-    lastMessage: 'Thanks!',
-    time: '3:55 May',
-    unreadCount: 0,
-    isOnline: true,
-    isTyping: true,
-    avatarColor: const Color(0xFF26A69A),
-    role: 'Full Stack Developer',
-  ),
-  ConversationModel(
-    id: '3',
-    name: 'Sneha Iyer',
-    lastMessage: 'Sure?',
-    time: '2:56 May',
-    unreadCount: 1,
-    isOnline: false,
-    isTyping: false,
-    avatarColor: const Color(0xFFEC407A),
-    role: 'UI/UX Designer',
-  ),
-  ConversationModel(
-    id: '4',
-    name: 'Vikram Patel',
-    lastMessage: 'See you!',
-    time: '1st May',
-    unreadCount: 0,
-    isOnline: false,
-    isTyping: false,
-    avatarColor: const Color(0xFFFF7043),
-    avatarText: 'A',
-    role: 'AI/ML Engineer',
-  ),
-  ConversationModel(
-    id: '5',
-    name: 'Mentor Support',
-    lastMessage: 'How can we help?',
-    time: '3rd May',
-    unreadCount: 0,
-    isOnline: true,
-    isTyping: false,
-    avatarColor: AppColors.primary,
-    isSupportChat: true,
-    role: 'ExpertMentor Team',
-  ),
-  ConversationModel(
-    id: '6',
-    name: 'Priya Nair',
-    lastMessage: 'Let\'s schedule for next week',
-    time: '28 Apr',
-    unreadCount: 3,
-    isOnline: true,
-    isTyping: false,
-    avatarColor: const Color(0xFF7E57C2),
-    role: 'Data Scientist',
-  ),
-  ConversationModel(
-    id: '7',
-    name: 'Arjun Mehta',
-    lastMessage: 'Docker setup done ✅',
-    time: '27 Apr',
-    unreadCount: 0,
-    isOnline: false,
-    isTyping: false,
-    avatarColor: const Color(0xFF29B6F6),
-    role: 'DevOps Engineer',
-  ),
-];
 
 // ══════════════════════════════════════════════════════════════════
 // Conversations Screen
@@ -148,12 +72,12 @@ class _ConversationsScreenState extends State<ConversationsScreen>
     );
 
     _itemAnims = List.generate(
-      _dummyConversations.length,
+      50,
       (i) => Tween<double>(begin: 0, end: 1).animate(
         CurvedAnimation(
           parent: _animCtrl,
           curve: Interval(
-            i * 0.08,
+            (i * 0.08).clamp(0.0, 0.9),
             (i * 0.08 + 0.5).clamp(0.0, 1.0),
             curve: Curves.easeOutCubic,
           ),
@@ -169,6 +93,15 @@ class _ConversationsScreenState extends State<ConversationsScreen>
     _searchCtrl.addListener(
       () => setState(() => _searchQuery = _searchCtrl.text),
     );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userId = int.tryParse(authProvider.user?.id ?? '') ?? 0;
+      if (userId > 0) {
+        Provider.of<ChatProvider>(context, listen: false).init(userId);
+      }
+      Provider.of<ExpertProvider>(context, listen: false).fetchExperts();
+    });
   }
 
   @override
@@ -179,25 +112,88 @@ class _ConversationsScreenState extends State<ConversationsScreen>
     super.dispose();
   }
 
+  ConversationModel _mapToUIModel(ConversationDetailModel realConv, ChatProvider provider) {
+    final name = realConv.participant.name;
+    final lastMessage = realConv.lastMessage;
+    final timeStr = _formatTimestamp(realConv.lastMessageAt);
+    final color = _generateAvatarColor(name);
+    final initials = name.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase();
+    final isTyping = provider.getTypingStatus(realConv.id) != null;
+
+    return ConversationModel(
+      id: realConv.id.toString(),
+      name: name,
+      lastMessage: isTyping ? 'Typing...' : lastMessage,
+      time: timeStr,
+      unreadCount: realConv.unreadCount,
+      isOnline: false,
+      isTyping: isTyping,
+      avatarColor: color,
+      avatarText: initials.isNotEmpty ? initials : null,
+      isSupportChat: name.toLowerCase().contains('support') || name.toLowerCase().contains('team'),
+      role: realConv.participant.role,
+    );
+  }
+
+  Color _generateAvatarColor(String name) {
+    final colors = [
+      const Color(0xFF5C6BC0),
+      const Color(0xFF26A69A),
+      const Color(0xFFEC407A),
+      const Color(0xFFFF7043),
+      const Color(0xFF7E57C2),
+      const Color(0xFF29B6F6),
+    ];
+    if (name.isEmpty) return colors[0];
+    final hash = name.codeUnits.fold(0, (sum, code) => sum + code);
+    return colors[hash % colors.length];
+  }
+
+  String _formatTimestamp(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+    
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inDays < 1) {
+      final hour = dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour;
+      final minute = dateTime.minute.toString().padLeft(2, '0');
+      final period = dateTime.hour >= 12 ? 'PM' : 'AM';
+      return '$hour:$minute $period';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return '${dateTime.day} ${months[dateTime.month - 1]}';
+    }
+  }
+
   List<ConversationModel> get _filtered {
-    if (_searchQuery.isEmpty) return _dummyConversations;
-    return _dummyConversations
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    final mappedConvs = chatProvider.conversations.map((rc) => _mapToUIModel(rc, chatProvider)).toList();
+
+    if (_searchQuery.isEmpty) return mappedConvs;
+    return mappedConvs
         .where(
           (c) =>
               c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              c.lastMessage.toLowerCase().contains(
-                _searchQuery.toLowerCase(),
-              ) ||
+              c.lastMessage.toLowerCase().contains(_searchQuery.toLowerCase()) ||
               c.role.toLowerCase().contains(_searchQuery.toLowerCase()),
         )
         .toList();
   }
 
-  int get _totalUnread =>
-      _dummyConversations.fold(0, (sum, c) => sum + c.unreadCount);
+  int get _totalUnread {
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    return chatProvider.conversations.fold(0, (sum, c) => sum + c.unreadCount);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final chatProvider = Provider.of<ChatProvider>(context);
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
@@ -205,57 +201,51 @@ class _ConversationsScreenState extends State<ConversationsScreen>
         body: SafeArea(
           child: Column(
             children: [
-              // ── Header ───────────────────────────
               _buildHeader(),
-
-              // ── Online Experts Row ───────────────
               _buildOnlineRow(),
-
-              // ── Search Bar ───────────────────────
               if (_isSearchVisible) ...[
                 _buildSearchBar(),
                 const SizedBox(height: 4),
               ],
-
-              // ── List ─────────────────────────────
               Expanded(
-                child: _filtered.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: _filtered.length,
-                        itemBuilder: (_, i) {
-                          final conv = _filtered[i];
-                          final animIndex = _dummyConversations.indexOf(conv);
-                          final anim = animIndex < _itemAnims.length
-                              ? _itemAnims[animIndex]
-                              : _itemAnims.last;
+                child: chatProvider.isLoading
+                    ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                    : _filtered.isEmpty
+                        ? _buildEmptyState()
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: _filtered.length,
+                            itemBuilder: (_, i) {
+                              final conv = _filtered[i];
+                              final animIndex = i;
+                              final anim = animIndex < _itemAnims.length
+                                  ? _itemAnims[animIndex]
+                                  : _itemAnims.last;
 
-                          return FadeTransition(
-                            opacity: anim,
-                            child: SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(0.3, 0),
-                                end: Offset.zero,
-                              ).animate(anim),
-                              child: Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: _ConversationTile(
-                                  conversation: conv,
-                                  onTap: () => _openChat(conv),
-                                  onDismiss: () => _deleteConversation(conv),
+                              return FadeTransition(
+                                opacity: anim,
+                                child: SlideTransition(
+                                  position: Tween<Offset>(
+                                    begin: const Offset(0.3, 0),
+                                    end: Offset.zero,
+                                  ).animate(anim),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: _ConversationTile(
+                                      conversation: conv,
+                                      onTap: () => _openChat(conv),
+                                      onDismiss: () => _deleteConversation(conv),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                              );
+                            },
+                          ),
               ),
             ],
           ),
         ),
-        // ── FAB ──────────────────────────────────
         floatingActionButton: FloatingActionButton(
           heroTag: 'conversations_fab',
           onPressed: _showNewChatSheet,
@@ -267,16 +257,12 @@ class _ConversationsScreenState extends State<ConversationsScreen>
     );
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // Header
-  // ══════════════════════════════════════════════════════════════
   Widget _buildHeader() {
     return Container(
       color: AppColors.white,
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
       child: Row(
         children: [
-          // Back button
           GestureDetector(
             onTap: () => Navigator.pop(context),
             child: Container(
@@ -295,8 +281,6 @@ class _ConversationsScreenState extends State<ConversationsScreen>
             ),
           ),
           const SizedBox(width: 14),
-
-          // Title + unread count subtitle
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,8 +311,6 @@ class _ConversationsScreenState extends State<ConversationsScreen>
               ],
             ),
           ),
-
-          // Search toggle
           GestureDetector(
             onTap: () {
               setState(() {
@@ -357,8 +339,6 @@ class _ConversationsScreenState extends State<ConversationsScreen>
             ),
           ),
           const SizedBox(width: 8),
-
-          // Filter
           GestureDetector(
             onTap: _showFilterSheet,
             child: Container(
@@ -381,9 +361,14 @@ class _ConversationsScreenState extends State<ConversationsScreen>
     );
   }
 
-  // ── Online Row ─────────────────────────────────────────────────
   Widget _buildOnlineRow() {
-    final onlineConvs = _dummyConversations.where((c) => c.isOnline).toList();
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    final onlineConvs = chatProvider.conversations
+        .map((rc) => _mapToUIModel(rc, chatProvider))
+        .where((c) => c.isOnline)
+        .toList();
+
+    if (onlineConvs.isEmpty) return const SizedBox.shrink();
 
     return SizedBox(
       height: 90,
@@ -451,7 +436,6 @@ class _ConversationsScreenState extends State<ConversationsScreen>
     );
   }
 
-  // ── Search Bar ─────────────────────────────────────────────────
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -467,14 +451,14 @@ class _ConversationsScreenState extends State<ConversationsScreen>
           boxShadow: _isSearchFocused
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha:  0.1),
+                    color: AppColors.primary.withOpacity(0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha:  0.04),
+                    color: Colors.black.withOpacity(0.04),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -498,7 +482,7 @@ class _ConversationsScreenState extends State<ConversationsScreen>
                 decoration: InputDecoration(
                   hintText: 'Search conversations...',
                   hintStyle: TextStyle(
-                    color: AppColors.muted.withValues(alpha:  0.7),
+                    color: AppColors.muted.withOpacity(0.7),
                     fontSize: 14,
                   ),
                   border: InputBorder.none,
@@ -519,10 +503,10 @@ class _ConversationsScreenState extends State<ConversationsScreen>
                 child: Padding(
                   padding: const EdgeInsets.only(right: 12),
                   child: Container(
-                    width: 20,
+                     width: 20,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: AppColors.muted.withValues(alpha:  0.2),
+                      color: AppColors.muted.withOpacity(0.2),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -539,7 +523,6 @@ class _ConversationsScreenState extends State<ConversationsScreen>
     );
   }
 
-  // ── Empty State ────────────────────────────────────────────────
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -548,7 +531,7 @@ class _ConversationsScreenState extends State<ConversationsScreen>
           Container(
             width: 80,
             height: 80,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.primarySoft,
               shape: BoxShape.circle,
             ),
@@ -569,7 +552,7 @@ class _ConversationsScreenState extends State<ConversationsScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Try searching with a different term',
+            'Try starting a conversation with an expert',
             style: TextStyle(fontSize: 13, color: AppColors.muted),
           ),
         ],
@@ -577,11 +560,14 @@ class _ConversationsScreenState extends State<ConversationsScreen>
     );
   }
 
-  // ── Actions ────────────────────────────────────────────────────
   void _openChat(ConversationModel conv) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => ChatScreen(conversation: conv)));
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    final realConv = chatProvider.conversations.firstWhere((rc) => rc.id.toString() == conv.id);
+    chatProvider.selectConversation(realConv);
+
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ChatScreen(conversation: conv)),
+    );
   }
 
   void _deleteConversation(ConversationModel conv) {
@@ -592,11 +578,6 @@ class _ConversationsScreenState extends State<ConversationsScreen>
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
-        action: SnackBarAction(
-          label: 'Undo',
-          textColor: AppColors.primary,
-          onPressed: () {},
-        ),
       ),
     );
   }
@@ -610,9 +591,35 @@ class _ConversationsScreenState extends State<ConversationsScreen>
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => _NewChatSheet(
-        onSelect: (conv) {
+        onSelect: (expert) async {
           Navigator.pop(context);
-          _openChat(conv);
+          final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+          
+          final existingConv = chatProvider.conversations.firstWhere(
+            (c) => c.participant.id.toString() == expert.userId,
+            orElse: () => ConversationDetailModel(
+              id: -1,
+              participant: ChatParticipantModel(id: -1, name: '', role: ''),
+              lastMessage: '',
+              lastMessageAt: DateTime.now(),
+              unreadCount: 0,
+            ),
+          );
+
+          if (existingConv.id != -1) {
+            await chatProvider.selectConversation(existingConv);
+            final uiModel = _mapToUIModel(existingConv, chatProvider);
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => ChatScreen(conversation: uiModel)));
+          } else {
+            final recId = int.tryParse(expert.userId ?? '') ?? 0;
+            if (recId > 0) {
+              await chatProvider.startNewConversation(recId, "Hello! I am interested in connecting with you.");
+              if (chatProvider.activeConversation != null) {
+                final uiModel = _mapToUIModel(chatProvider.activeConversation!, chatProvider);
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => ChatScreen(conversation: uiModel)));
+              }
+            }
+          }
         },
       ),
     );
@@ -630,9 +637,6 @@ class _ConversationsScreenState extends State<ConversationsScreen>
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Conversation Tile
-// ══════════════════════════════════════════════════════════════════
 class _ConversationTile extends StatelessWidget {
   final ConversationModel conversation;
   final VoidCallback onTap;
@@ -657,16 +661,16 @@ class _ConversationTile extends StatelessWidget {
           color: Colors.redAccent,
           borderRadius: BorderRadius.circular(18),
         ),
-        child: Column(
+        child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.delete_outline_rounded,
               color: Colors.white,
               size: 24,
             ),
-            const SizedBox(height: 2),
-            const Text(
+            SizedBox(height: 2),
+            Text(
               'Delete',
               style: TextStyle(
                 color: Colors.white,
@@ -682,19 +686,17 @@ class _ConversationTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: conversation.unreadCount > 0
-                ? AppColors.white
-                : AppColors.white,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: conversation.unreadCount > 0
-                  ? AppColors.primary.withValues(alpha:  0.2)
+                  ? AppColors.primary.withOpacity(0.2)
                   : AppColors.line,
               width: conversation.unreadCount > 0 ? 1.5 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha:  
+                color: Colors.black.withOpacity(
                   conversation.unreadCount > 0 ? 0.07 : 0.04,
                 ),
                 blurRadius: 12,
@@ -704,7 +706,6 @@ class _ConversationTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // ── Avatar ───────────────────────────
               Stack(
                 children: [
                   Container(
@@ -715,7 +716,7 @@ class _ConversationTile extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: conversation.avatarColor.withValues(alpha:  0.3),
+                          color: conversation.avatarColor.withOpacity(0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
                         ),
@@ -723,7 +724,6 @@ class _ConversationTile extends StatelessWidget {
                     ),
                     child: _AvatarContent(conv: conversation),
                   ),
-                  // Online dot
                   if (conversation.isOnline)
                     Positioned(
                       bottom: 2,
@@ -741,13 +741,10 @@ class _ConversationTile extends StatelessWidget {
                 ],
               ),
               const SizedBox(width: 14),
-
-              // ── Content ──────────────────────────
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Name + Time
                     Row(
                       children: [
                         Expanded(
@@ -802,24 +799,20 @@ class _ConversationTile extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-
-                    // Subtitle + Role
                     Text(
                       conversation.role,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 10,
                         color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 4),
-
-                    // Last message + unread badge
                     Row(
                       children: [
                         Expanded(
                           child: conversation.isTyping
-                              ? _TypingIndicator()
+                              ? const _TypingIndicator()
                               : Text(
                                   conversation.lastMessage,
                                   overflow: TextOverflow.ellipsis,
@@ -869,9 +862,6 @@ class _ConversationTile extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Avatar Content
-// ══════════════════════════════════════════════════════════════════
 class _AvatarContent extends StatelessWidget {
   final ConversationModel conv;
 
@@ -902,10 +892,9 @@ class _AvatarContent extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Typing Indicator
-// ══════════════════════════════════════════════════════════════════
 class _TypingIndicator extends StatefulWidget {
+  const _TypingIndicator();
+
   @override
   State<_TypingIndicator> createState() => _TypingIndicatorState();
 }
@@ -943,7 +932,7 @@ class _TypingIndicatorState extends State<_TypingIndicator>
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(
+        const Text(
           'typing',
           style: TextStyle(
             fontSize: 12,
@@ -977,69 +966,21 @@ class _TypingIndicatorState extends State<_TypingIndicator>
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Top Bar Button
-// ══════════════════════════════════════════════════════════════════
-class _TopBarBtn extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool isActive;
-
-  const _TopBarBtn({
-    required this.icon,
-    required this.onTap,
-    this.isActive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.primarySoft : AppColors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isActive ? AppColors.primary : AppColors.line,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha:  0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Icon(
-          icon,
-          color: isActive ? AppColors.primary : AppColors.ink,
-          size: 20,
-        ),
-      ),
-    );
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════
-// New Chat Sheet
-// ══════════════════════════════════════════════════════════════════
 class _NewChatSheet extends StatelessWidget {
-  final ValueChanged<ConversationModel> onSelect;
+  final ValueChanged<ExpertModel> onSelect;
 
   const _NewChatSheet({required this.onSelect});
 
   @override
   Widget build(BuildContext context) {
+    final experts = Provider.of<ExpertProvider>(context).experts;
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Handle
           Center(
             child: Container(
               width: 40,
@@ -1060,53 +1001,81 @@ class _NewChatSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
+          const Text(
             'Select an expert to start chatting',
             style: TextStyle(fontSize: 13, color: AppColors.muted),
           ),
           const SizedBox(height: 16),
-          ..._dummyConversations.map(
-            (conv) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(
-                backgroundColor: conv.avatarColor,
-                child: _AvatarContent(conv: conv),
+          if (experts.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: Text('No experts available', style: TextStyle(color: AppColors.muted)),
               ),
-              title: Text(
-                conv.name,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.ink,
-                ),
+            )
+          else
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.5,
               ),
-              subtitle: Text(
-                conv.role,
-                style: TextStyle(fontSize: 11, color: AppColors.primary),
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const BouncingScrollPhysics(),
+                itemCount: experts.length,
+                itemBuilder: (context, index) {
+                  final expert = experts[index];
+                  final initials = expert.name.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase();
+                  
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(
+                      backgroundColor: expert.avatarColor,
+                      child: expert.profileImage != null
+                          ? ClipOval(child: Image.network(expert.profileImage!, fit: BoxFit.cover, width: 40, height: 40))
+                          : Center(
+                              child: Text(
+                                initials,
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                    ),
+                    title: Text(
+                      expert.name,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.ink,
+                      ),
+                    ),
+                    subtitle: Text(
+                      expert.title,
+                      style: TextStyle(fontSize: 11, color: AppColors.primary),
+                    ),
+                    trailing: expert.isOnline
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE8F5E9),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text(
+                              'Online',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF2E7D32),
+                              ),
+                            ),
+                          )
+                        : null,
+                    onTap: () => onSelect(expert),
+                  );
+                },
               ),
-              trailing: conv.isOnline
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8F5E9),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Text(
-                        'Online',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF2E7D32),
-                        ),
-                      ),
-                    )
-                  : null,
-              onTap: () => onSelect(conv),
             ),
-          ),
           const SizedBox(height: 8),
         ],
       ),
@@ -1114,9 +1083,6 @@ class _NewChatSheet extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// Filter Sheet
-// ══════════════════════════════════════════════════════════════════
 class _FilterSheet extends StatefulWidget {
   const _FilterSheet();
 

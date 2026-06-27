@@ -4,8 +4,7 @@ import 'core/theme/app_colors.dart';
 import 'providers/auth_provider.dart';
 import 'providers/expert_provider.dart';
 import 'screens/learner/learner_dashboard_screen.dart';
-
-
+import 'providers/chat_provider.dart';
 
 void main() {
   runApp(
@@ -13,6 +12,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
         ChangeNotifierProvider(create: (_) => ExpertProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: const ExpertMentorApp(),
     ),

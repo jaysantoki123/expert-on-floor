@@ -33,6 +33,7 @@
     "nodemailer": "^7.0.12",
     "sequelize": "^6.37.8",
     "swagger-jsdoc": "^6.3.0",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "socket.io": "^4.8.3"
   }
 }
