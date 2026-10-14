@@ -1,0 +1,1164 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../core/theme/app_colors.dart';
+import '../../models/booking_model.dart';
+import '../../models/expert_model.dart';
+import '../../providers/auth_provider.dart';
+import '../../services/booking_service.dart';
+import 'payment_screen.dart';
+
+class MyBookingsScreen extends StatefulWidget {
+  const MyBookingsScreen({super.key});
+
+  @override
+  State<MyBookingsScreen> createState() => _MyBookingsScreenState();
+}
+
+class _MyBookingsScreenState extends State<MyBookingsScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  bool _showSearch = false;
+  String _searchQuery = '';
+  final TextEditingController _searchCtrl = TextEditingController();
+
+  List<BookingModel> _allBookings = [];
+  bool _isPageLoading = true;
+  String? _errorMessage;
+  final BookingService _bookingService = BookingService();
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _searchCtrl.addListener(() {
+      setState(() => _searchQuery = _searchCtrl.text);
+    });
+    _fetchBookings();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchBookings() async {
+    setState(() {
+      _isPageLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final bookings = await _bookingService.getMyBookings();
+      setState(() {
+        _allBookings = bookings;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isPageLoading = false;
+      });
+    }
+  }
+
+  Future<void> _handleCancel(BookingModel booking) async {
+    try {
+      await _bookingService.cancelBooking(booking.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Booking cancelled successfully')),
+      );
+      _fetchBookings();
+    } catch (e) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Cancellation Failed'),
+          content: Text(e.toString()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleAccept(BookingModel booking) async {
+    setState(() {
+      _isPageLoading = true;
+    });
+    try {
+      await _bookingService.acceptBooking(booking.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Booking accepted successfully')),
+      );
+      _fetchBookings();
+    } catch (e) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Action Failed'),
+          content: Text(e.toString()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPageLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleReject(BookingModel booking) async {
+    setState(() {
+      _isPageLoading = true;
+    });
+    try {
+      await _bookingService.rejectBooking(booking.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Booking rejected successfully')),
+      );
+      _fetchBookings();
+    } catch (e) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Action Failed'),
+          content: Text(e.toString()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPageLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handlePayNow(BookingModel booking) async {
+    setState(() {
+      _isPageLoading = true;
+    });
+    try {
+      final orderResult = await _bookingService.createOrder(booking.id);
+      final razorpayOrderId = orderResult['razorpayOrderId'];
+      final razorpayKey = orderResult['key'] ?? 'rzp_test_mock';
+      
+      final dummyExpert = ExpertModel(
+        id: booking.expertId.toString(),
+        name: booking.expertName ?? 'Expert',
+        role: 'Expert',
+        experience: 'Experienced',
+        rating: 4.8,
+        price: booking.amount,
+        skills: const [],
+        bio: '',
+        title: 'Expert',
+        pricePerHour: booking.amount,
+        profileImage: booking.expertProfileImage,
+      );
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PaymentScreen(
+            expert: dummyExpert,
+            date: booking.date,
+            time: booking.timeSlot,
+            sessionType: booking.sessionType,
+            duration: '${booking.durationMinutes} min',
+            totalAmount: booking.amount,
+            bookingId: booking.id,
+            razorpayOrderId: razorpayOrderId,
+            razorpayKey: razorpayKey,
+          ),
+        ),
+      ).then((_) => _fetchBookings());
+    } catch (e) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Payment Error'),
+          content: Text(e.toString()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPageLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = _allBookings.where((b) {
+      if (_searchQuery.isEmpty) return true;
+      final query = _searchQuery.toLowerCase();
+      final name = b.expertName ?? '';
+      final topic = b.topic;
+      final type = b.sessionType;
+      return name.toLowerCase().contains(query) ||
+          topic.toLowerCase().contains(query) ||
+          type.toLowerCase().contains(query);
+    }).toList();
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final upcoming = filtered.where((b) {
+      if (b.bookingStatus == 'CANCELLED' || b.bookingStatus == 'REJECTED' || b.bookingStatus == 'EXPERT_CANCELLED' || b.bookingStatus == 'PAYMENT_EXPIRED') {
+        return false;
+      }
+      if (b.bookingStatus == 'COMPLETED') {
+        return false;
+      }
+      final bDate = DateTime.tryParse(b.date);
+      if (bDate != null && bDate.isBefore(today)) {
+        return false;
+      }
+      return true;
+    }).toList();
+
+    final past = filtered.where((b) {
+      if (b.bookingStatus == 'COMPLETED') {
+        return true;
+      }
+      final bDate = DateTime.tryParse(b.date);
+      if (bDate != null && bDate.isBefore(today) && 
+          b.bookingStatus != 'CANCELLED' && 
+          b.bookingStatus != 'REJECTED' && 
+          b.bookingStatus != 'EXPERT_CANCELLED' &&
+          b.bookingStatus != 'PAYMENT_EXPIRED') {
+        return true;
+      }
+      return false;
+    }).toList();
+
+    final cancelled = filtered.where((b) {
+      return b.bookingStatus == 'CANCELLED' || 
+             b.bookingStatus == 'REJECTED' || 
+             b.bookingStatus == 'EXPERT_CANCELLED' ||
+             b.bookingStatus == 'PAYMENT_EXPIRED';
+    }).toList();
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF4F6F4),
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              if (_showSearch) _buildSearchBar(),
+              _buildTabBar(upcoming.length),
+              Expanded(
+                child: _isPageLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _errorMessage != null
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  onPressed: _fetchBookings,
+                                  child: const Text('Retry'),
+                                ),
+                              ],
+                            ),
+                          )
+                        : TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildList(upcoming, isUpcomingTab: true),
+                              _buildList(past),
+                              _buildList(cancelled),
+                            ],
+                          ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // Header
+  // ══════════════════════════════════════════════════════════════
+  Widget _buildHeader() {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.ink,
+                size: 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'My Bookings',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                    letterSpacing: -0.4,
+                  ),
+                ),
+                Text(
+                  'Your scheduled expert sessions',
+                  style: TextStyle(fontSize: 12, color: AppColors.muted),
+                ),
+              ],
+            ),
+          ),
+          // Search
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _showSearch = !_showSearch;
+                if (!_showSearch) _searchCtrl.clear();
+              });
+            },
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _showSearch ? AppColors.primarySoft : AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _showSearch ? AppColors.primary : AppColors.line,
+                ),
+              ),
+              child: Icon(
+                _showSearch ? Icons.close_rounded : Icons.search_rounded,
+                color: _showSearch ? AppColors.primary : AppColors.ink,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Filter
+          GestureDetector(
+            onTap: _fetchBookings,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.field,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
+              ),
+              child: const Icon(
+                Icons.refresh_rounded,
+                color: AppColors.ink,
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // Tab Bar
+  // ══════════════════════════════════════════════════════════════
+  Widget _buildTabBar(int upcomingCount) {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Container(
+        height: 42,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: AppColors.field,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.line),
+        ),
+        child: TabBar(
+          controller: _tabController,
+          indicator: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelColor: AppColors.white,
+          unselectedLabelColor: AppColors.muted,
+          labelStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+          dividerColor: Colors.transparent,
+          tabs: [
+            Tab(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Upcoming'),
+                  const SizedBox(width: 4),
+                  _tabBadge('$upcomingCount'),
+                ],
+              ),
+            ),
+            const Tab(text: 'Past'),
+            const Tab(text: 'Cancelled'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _tabBadge(String count) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha:  0.3),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        count,
+        style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // Search Bar
+  // ══════════════════════════════════════════════════════════════
+  Widget _buildSearchBar() {
+    return Container(
+      color: AppColors.white,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+      child: TextField(
+        controller: _searchCtrl,
+        autofocus: true,
+        style: const TextStyle(fontSize: 14, color: AppColors.ink),
+        decoration: InputDecoration(
+          hintText: 'Search bookings, experts, topics...',
+          hintStyle: TextStyle(
+            color: AppColors.muted.withValues(alpha: 0.7),
+            fontSize: 13,
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: AppColors.primary,
+            size: 20,
+          ),
+          prefixIconConstraints: const BoxConstraints(minWidth: 48),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+          ),
+          errorBorder: InputBorder.none,
+          focusedErrorBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 13, horizontal: 10),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildList(List<BookingModel> bookings, {bool isUpcomingTab = false}) {
+    if (bookings.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.primarySoft,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.calendar_today_rounded,
+                color: AppColors.primary,
+                size: 38,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'No bookings found',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.ink,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      physics: const BouncingScrollPhysics(),
+      itemCount: bookings.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (_, i) => _BookingCard(
+        data: bookings[i],
+        onCancel: () => _handleCancel(bookings[i]),
+        onAccept: () => _handleAccept(bookings[i]),
+        onReject: () => _handleReject(bookings[i]),
+        onPayNow: () => _handlePayNow(bookings[i]),
+        isUpcomingTab: isUpcomingTab,
+      ),
+    );
+  }
+}
+
+class _BookingCard extends StatelessWidget {
+  final BookingModel data;
+  final VoidCallback onCancel;
+  final VoidCallback onAccept;
+  final VoidCallback onReject;
+  final VoidCallback onPayNow;
+  final bool isUpcomingTab;
+
+  const _BookingCard({
+    required this.data,
+    required this.onCancel,
+    required this.onAccept,
+    required this.onReject,
+    required this.onPayNow,
+    this.isUpcomingTab = false,
+  });
+
+  Color get _statusColor {
+    switch (data.bookingStatus) {
+      case 'CONFIRMED':
+        return AppColors.primary;
+      case 'PENDING':
+        return Colors.orange;
+      case 'PAYMENT_PENDING':
+        return Colors.amber.shade800;
+      case 'COMPLETED':
+        return Colors.blue;
+      case 'CANCELLED':
+      case 'REJECTED':
+      case 'EXPERT_CANCELLED':
+        return Colors.redAccent;
+      case 'PAYMENT_EXPIRED':
+        return Colors.grey;
+      case 'NO_SHOW':
+        return Colors.blueGrey;
+      default:
+        return AppColors.muted;
+    }
+  }
+
+  String _formatStatusLabel(String statusVal) {
+    switch (statusVal) {
+      case 'PENDING':
+        return 'Pending Approval';
+      case 'PAYMENT_PENDING':
+        return 'Payment Pending';
+      case 'CONFIRMED':
+        return 'Confirmed';
+      case 'COMPLETED':
+        return 'Completed';
+      case 'CANCELLED':
+        return 'Cancelled';
+      case 'REJECTED':
+        return 'Rejected';
+      case 'EXPERT_CANCELLED':
+        return 'Expert Cancelled';
+      case 'PAYMENT_EXPIRED':
+        return 'Payment Expired';
+      case 'NO_SHOW':
+        return 'No Show';
+      default:
+        return statusVal;
+    }
+  }
+
+  Color _getDeterministicColor(String name) {
+    final colors = [
+      const Color(0xFF5C6BC0),
+      const Color(0xFFEC407A),
+      const Color(0xFFFF7043),
+      const Color(0xFF26A69A),
+      const Color(0xFF7E57C2),
+    ];
+    int hash = name.codeUnits.fold(0, (prev, element) => prev + element);
+    return colors[hash % colors.length];
+  }
+
+  String _formatDate(String rawDate) {
+    try {
+      final parts = rawDate.split('-');
+      if (parts.length != 3) return rawDate;
+      final year = parts[0];
+      final month = int.parse(parts[1]);
+      final day = int.parse(parts[2]);
+      const months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      final monthName = months[month - 1];
+      return '$day $monthName, $year';
+    } catch (e) {
+      return rawDate;
+    }
+  }
+
+  String _formatTime(String rawTime) {
+    try {
+      final parts = rawTime.split(':');
+      if (parts.isEmpty) return rawTime;
+      int hour = int.parse(parts[0]);
+      final minute = parts[1];
+      final ampm = hour >= 12 ? 'PM' : 'AM';
+      if (hour > 12) {
+        hour -= 12;
+      } else if (hour == 0) {
+        hour = 12;
+      }
+      return '$hour:$minute $ampm';
+    } catch (e) {
+      return rawTime;
+    }
+  }
+
+  String _formatSessionType(String type) {
+    if (type.toLowerCase() == 'video') return 'Video Call';
+    if (type.toLowerCase() == 'audio') return 'Audio Call';
+    if (type.toLowerCase() == 'chat') return 'Chat Session';
+    return type[0].toUpperCase() + type.substring(1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final expertName = data.expertName ?? 'Expert';
+    final cardColor = _getDeterministicColor(expertName);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha:  0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // ── Header ───────────────────────────────
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: cardColor.withValues(alpha:  0.08),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: cardColor,
+                  child: const Icon(
+                    Icons.person_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        expertName,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        data.topic.isNotEmpty ? data.topic : 'General Session',
+                        style: const TextStyle(fontSize: 11, color: AppColors.muted),
+                      ),
+                    ],
+                  ),
+                ),
+                // Status chip
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _statusColor.withValues(alpha:  0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    _formatStatusLabel(data.bookingStatus),
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: _statusColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Details ───────────────────────────────
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    _detailChip(
+                      Icons.calendar_today_rounded,
+                      _formatDate(data.date),
+                      AppColors.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    _detailChip(
+                      Icons.access_time_rounded,
+                      _formatTime(data.timeSlot),
+                      Colors.deepPurple,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    _detailChip(
+                      Icons.timer_outlined,
+                      '${data.durationMinutes} min',
+                      Colors.teal,
+                    ),
+                    const SizedBox(width: 8),
+                    _detailChip(
+                      Icons.videocam_outlined,
+                      _formatSessionType(data.sessionType),
+                      Colors.orange,
+                    ),
+                    const Spacer(),
+                    Text(
+                      '₹${data.amount}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                if (isUpcomingTab && data.bookingStatus != 'CANCELLED' && data.bookingStatus != 'REJECTED' && data.bookingStatus != 'EXPERT_CANCELLED' && data.bookingStatus != 'PAYMENT_EXPIRED') ...[
+                  const SizedBox(height: 12),
+                  Builder(
+                    builder: (context) {
+                      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                      final isExpert = authProvider.isExpert;
+
+                      return Row(
+                        children: [
+                          if (data.bookingStatus == 'PENDING') ...[
+                            if (isExpert) ...[
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => AlertDialog(
+                                        title: const Text('Decline Request'),
+                                        content: const Text('Are you sure you want to decline this session request?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context),
+                                            child: const Text('No'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                              onReject();
+                                            },
+                                            child: const Text('Yes, Decline', style: TextStyle(color: Colors.red)),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Colors.redAccent),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  child: const Text(
+                                    'Decline',
+                                    style: TextStyle(
+                                      color: Colors.redAccent,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                flex: 2,
+                                child: ElevatedButton(
+                                  onPressed: onAccept,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  child: const Text(
+                                    'Accept Request',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ] else ...[
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => AlertDialog(
+                                        title: const Text('Cancel Request'),
+                                        content: const Text('Are you sure you want to cancel this request?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context),
+                                            child: const Text('No'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                              onCancel();
+                                            },
+                                            child: const Text('Yes, Cancel', style: TextStyle(color: Colors.red)),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Colors.redAccent),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  child: const Text(
+                                    'Cancel Request',
+                                    style: TextStyle(
+                                      color: Colors.redAccent,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                flex: 2,
+                                child: ElevatedButton(
+                                  onPressed: null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.grey.shade300,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  child: Text(
+                                    'Awaiting Approval',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ] else if (data.bookingStatus == 'PAYMENT_PENDING') ...[
+                            if (isExpert) ...[
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: null,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.grey.shade300,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  child: Text(
+                                    'Awaiting Payment',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ] else ...[
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => AlertDialog(
+                                        title: const Text('Cancel Booking'),
+                                        content: const Text('Are you sure you want to cancel this booking?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context),
+                                            child: const Text('No'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                              onCancel();
+                                            },
+                                            child: const Text('Yes, Cancel', style: TextStyle(color: Colors.red)),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Colors.redAccent),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  child: const Text(
+                                    'Cancel',
+                                    style: TextStyle(
+                                      color: Colors.redAccent,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                flex: 2,
+                                child: ElevatedButton(
+                                  onPressed: onPayNow,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  child: const Text(
+                                    'Pay Now',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ] else ...[
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => AlertDialog(
+                                      title: const Text('Cancel Booking'),
+                                      content: const Text('Are you sure you want to cancel this booking?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          child: const Text('No'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            onCancel();
+                                          },
+                                          child: const Text('Yes, Cancel', style: TextStyle(color: Colors.red)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(color: Colors.redAccent),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                ),
+                                child: const Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              flex: 2,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Session link is not active yet')),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  elevation: 0,
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                ),
+                                child: const Text(
+                                  'Join Session',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha:  0.08),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

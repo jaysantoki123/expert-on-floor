@@ -1,0 +1,66 @@
+# Miscellaneous / OS
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+Thumbs.db
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+expert-on-floor-main/
+temp_color_test.dart
+.opencodeignore
+
+# Credentials & Firebase Secrets
+**/google-services*.json
+**/GoogleService-Info.plist
+firebase.json
+*.env
+*.env.*
+
+# Keystore & Android signing credentials
+key.properties
+**/*.keystore
+**/*.jks
+
+# Android local machine configuration & build caches
+/android/local.properties
+/android/.gradle/
+/android/.kotlin/
+/android/build/
+/android/app/debug/
+/android/app/profile/
+/android/app/release/
+
+# iOS generated configuration & ephemeral files
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/ephemeral/
+**/Pods/
+**/.symlinks/
+
+# Flutter / Dart Build outputs
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+**/doc/api/
+
+# Symbolication & Obfuscation
+app.*.symbols
+app.*.map.json
+
+# IDEs
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/
