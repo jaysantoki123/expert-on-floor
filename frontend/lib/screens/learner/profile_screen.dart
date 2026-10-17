@@ -1664,10 +1664,9 @@ class _MenuItem {
     required this.subtitle,
     required this.onTap,
     this.badge,
-    this.trailingText,
     this.trailing,
     this.isLast = false,
-  });
+  }) : trailingText = null;
 }
 
 class _MenuItemTile extends StatelessWidget {

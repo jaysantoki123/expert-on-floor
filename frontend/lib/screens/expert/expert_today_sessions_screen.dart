@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import 'expert_video_session_screen.dart';
 
 class ExpertTodaySessionsScreen extends StatelessWidget {
   const ExpertTodaySessionsScreen({super.key});
@@ -305,8 +306,20 @@ class ExpertTodaySessionsScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.phone_in_talk, color: Color(0xFF0F8C43), size: 20),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ExpertVideoSessionScreen(
+                              menteeName: 'Sarah Jenkins',
+                              sessionTitle: 'Strategic Marketing Review',
+                              menteeAvatar:
+                                  'https://images.unsplash.com/photo-1531123897727-8f129e1bf98a?auto=format&fit=crop&q=80&w=300',
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.videocam_rounded, color: Color(0xFF0F8C43), size: 20),
                       label: const Text(
                         "Join Now",
                         style: TextStyle(

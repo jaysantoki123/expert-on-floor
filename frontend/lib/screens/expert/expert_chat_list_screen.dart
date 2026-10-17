@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../models/chat_models.dart';
+import '../learner/chat_screen.dart';
 
 class ExpertChatListScreen extends StatefulWidget {
   const ExpertChatListScreen({super.key});
@@ -177,7 +179,27 @@ class _ExpertChatListScreenState extends State<ExpertChatListScreen> {
     Color? timeColor,
     bool isMessageBold = false,
   }) {
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(
+              conversation: ConversationModel(
+                id: 'conv_${name.hashCode}',
+                name: name,
+                lastMessage: message,
+                time: time,
+                unreadCount: unreadCount,
+                isOnline: isOnline,
+                avatarColor: primaryGreen,
+                role: 'Learner',
+                profileImage: avatarUrl,
+              ),
+            ),
+          ),
+        );
+      },
+      child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -319,6 +341,7 @@ class _ExpertChatListScreenState extends State<ExpertChatListScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 

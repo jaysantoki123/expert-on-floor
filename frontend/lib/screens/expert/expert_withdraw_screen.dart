@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import 'expert_payout_methods_screen.dart';
 
 class ExpertWithdrawScreen extends StatefulWidget {
   const ExpertWithdrawScreen({super.key});
@@ -323,34 +324,40 @@ class _ExpertWithdrawScreenState extends State<ExpertWithdrawScreen> {
   }
 
   Widget _buildAddNewMethodButton() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      // Adding a custom dashed border using a Container and a CustomPainter
-      // A simpler way without extra package is just using outlined button style or a custom painter
-      // We'll use a CustomPaint to draw the dashed border.
-      child: CustomPaint(
-        painter: _DashedRectPainter(color: AppColors.line),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.add_circle_outline, color: primaryGreen, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                "Add New Payout Method",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: primaryGreen,
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => const ExpertPayoutMethodsScreen(),
+          ),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: CustomPaint(
+          painter: _DashedRectPainter(color: AppColors.line),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_circle_outline, color: primaryGreen, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  "Add / Manage Payout Methods",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: primaryGreen,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -530,7 +537,7 @@ class _DashedRectPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    double dashWidth = 5, dashSpace = 4, startX = 0, startY = 0;
+    double dashWidth = 5, dashSpace = 4;
     final paint = Paint()
       ..color = color
       ..strokeWidth = 1.5

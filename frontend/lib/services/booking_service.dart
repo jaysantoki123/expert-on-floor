@@ -1,5 +1,4 @@
 import 'dart:convert';
-import '../core/exceptions/app_exceptions.dart';
 import '../core/network/api_client.dart';
 import '../models/booking_model.dart';
 import '../utils/api_constants.dart';

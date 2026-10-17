@@ -960,7 +960,7 @@ class _DashboardTabState extends State<_DashboardTab>
 
   String _formatBookingTime(BookingModel booking) {
     // Format date and time
-    return '${booking.date?.substring(0, 10) ?? ''} • ${booking.timeSlot ?? ''}';
+    return '${booking.date.substring(0, 10) ?? ''} • ${booking.timeSlot ?? ''}';
   }
 
   Color _getAvatarColor(int expertId) {

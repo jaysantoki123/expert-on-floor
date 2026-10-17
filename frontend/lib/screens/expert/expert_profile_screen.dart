@@ -5,10 +5,18 @@ import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/api_constants.dart';
 import '../../utils/password_validator.dart';
-import '../learner/conversations_screen.dart';
+import 'expert_chat_list_screen.dart';
 import '../learner/notifications_screen.dart';
-import '../learner/my_bookings_screen.dart';
-import '../learner/payment_history_screen.dart';
+import 'expert_bookings_screen.dart';
+import 'expert_earnings_screen.dart';
+import 'expert_payout_methods_screen.dart';
+import 'expert_manage_services_screen.dart';
+import 'expert_learners_screen.dart';
+import 'expert_community_answers_screen.dart';
+import 'expert_resources_screen.dart';
+import 'expert_verification_screen.dart';
+import 'expert_settings_screen.dart';
+import 'expert_help_support_screen.dart';
 import '../login_screen.dart';
 import 'edit_skills_screen.dart';
 import 'expert_availability_screen.dart';
@@ -621,7 +629,7 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── Sessions & Earnings ──────────────────
-          const _SectionTitle('Sessions & Earnings'),
+          const _SectionTitle('Sessions & Financials'),
           const SizedBox(height: 10),
           _MenuCard(
             items: [
@@ -629,21 +637,20 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
                 icon: Icons.calendar_today_rounded,
                 iconColor: AppColors.primary,
                 iconBg: AppColors.primarySoft,
-                title: 'My Sessions',
-                subtitle: '3 upcoming sessions',
-                badge: '3',
+                title: 'My Scheduled Sessions',
+                subtitle: 'Manage upcoming & past bookings',
                 onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+                  MaterialPageRoute(builder: (_) => const ExpertBookingsScreen()),
                 ),
               ),
               _MenuItem(
                 icon: Icons.account_balance_wallet_rounded,
                 iconColor: Colors.teal,
                 iconBg: const Color(0xFFE0F2F1),
-                title: 'Earnings',
-                subtitle: '₹24,000 total earned',
+                title: 'Earnings & Revenue',
+                subtitle: '₹24,500 total earned',
                 onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+                  MaterialPageRoute(builder: (_) => const ExpertEarningsScreen()),
                 ),
                 trailing: Container(
                   padding: const EdgeInsets.symmetric(
@@ -655,7 +662,7 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
-                    '₹24K',
+                    '₹24.5K',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -665,14 +672,14 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
                 ),
               ),
               _MenuItem(
-                icon: Icons.payment_rounded,
-                iconColor: Colors.green,
-                iconBg: const Color(0xFFE8F5E9),
-                title: 'Payment History',
-                subtitle: 'View your transactions',
+                icon: Icons.credit_card_rounded,
+                iconColor: const Color(0xFF0F766E),
+                iconBg: const Color(0xFFCCFBF1),
+                title: 'Payout Methods',
+                subtitle: 'Bank accounts & UPI IDs',
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                      builder: (_) => const PaymentHistoryScreen()),
+                      builder: (_) => const ExpertPayoutMethodsScreen()),
                 ),
               ),
               _MenuItem(
@@ -680,7 +687,7 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
                 iconColor: Colors.indigo,
                 iconBg: const Color(0xFFE8EAF6),
                 title: 'Booking Analytics',
-                subtitle: 'View your session metrics',
+                subtitle: 'Conversion rate & session volume',
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                       builder: (_) => const ExpertBookingAnalyticsScreen()),
@@ -691,10 +698,64 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
                 iconColor: Colors.orange,
                 iconBg: const Color(0xFFFFF3E0),
                 title: 'Withdraw Funds',
-                subtitle: 'Manage your payouts',
+                subtitle: 'Transfer funds to bank account',
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                       builder: (_) => const ExpertWithdrawScreen()),
+                ),
+                isLast: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // ── Mentorship & Students ─────────────────
+          const _SectionTitle('Mentorship & Learners'),
+          const SizedBox(height: 10),
+          _MenuCard(
+            items: [
+              _MenuItem(
+                icon: Icons.workspace_premium_rounded,
+                iconColor: AppColors.primary,
+                iconBg: AppColors.primarySoft,
+                title: 'Services & Pricing',
+                subtitle: 'Configure consultation packages',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const ExpertManageServicesScreen()),
+                ),
+              ),
+              _MenuItem(
+                icon: Icons.people_outline_rounded,
+                iconColor: Colors.teal,
+                iconBg: const Color(0xFFE0F2F1),
+                title: 'My Learners & Mentees',
+                subtitle: 'Track student progress & roadmap notes',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const ExpertLearnersScreen()),
+                ),
+              ),
+              _MenuItem(
+                icon: Icons.forum_outlined,
+                iconColor: const Color(0xFF8B5CF6),
+                iconBg: const Color(0xFFF3E8FF),
+                title: 'Community Q&A Answers',
+                subtitle: 'Answer questions to earn mentorship leads',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const ExpertCommunityAnswersScreen()),
+                ),
+              ),
+              _MenuItem(
+                icon: Icons.folder_shared_outlined,
+                iconColor: Colors.blue,
+                iconBg: const Color(0xFFEFF6FF),
+                title: 'Shared Learning Resources',
+                subtitle: 'Templates, cheat sheets & guides',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const ExpertResourcesScreen()),
                 ),
                 isLast: true,
               ),
@@ -711,12 +772,12 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
                 icon: Icons.chat_bubble_rounded,
                 iconColor: Colors.deepPurple,
                 iconBg: const Color(0xFFF3E5F5),
-                title: 'Messages',
-                subtitle: '2 unread messages',
+                title: 'Messages & Chats',
+                subtitle: 'Communicate with learners',
                 badge: '2',
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                      builder: (_) => const ConversationsScreen()),
+                      builder: (_) => const ExpertChatListScreen()),
                 ),
               ),
               _MenuItem(
@@ -724,7 +785,7 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
                 iconColor: Colors.redAccent,
                 iconBg: const Color(0xFFFFEBEE),
                 title: 'Notifications',
-                subtitle: '5 new notifications',
+                subtitle: 'Session & booking alerts',
                 badge: '5',
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
@@ -736,25 +797,36 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
           ),
           const SizedBox(height: 16),
 
-          // ── Account ───────────────────────────────
-          const _SectionTitle('Account'),
+          // ── Account & Preferences ─────────────────
+          const _SectionTitle('Account & Configuration'),
           const SizedBox(height: 10),
           _MenuCard(
             items: [
               _MenuItem(
+                icon: Icons.verified_user_outlined,
+                iconColor: const Color(0xFF0284C7),
+                iconBg: const Color(0xFFE0F2FE),
+                title: 'Verification & Trust Badges',
+                subtitle: 'Identity and credentials status',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const ExpertVerificationScreen()),
+                ),
+              ),
+              _MenuItem(
                 icon: Icons.person_outline_rounded,
                 iconColor: AppColors.primary,
                 iconBg: AppColors.primarySoft,
-                title: 'Edit Profile',
-                subtitle: 'Update your information',
+                title: 'Edit Profile Info',
+                subtitle: 'Update bio, headline & avatar',
                 onTap: () => _showEditProfile(context),
               ),
               _MenuItem(
                 icon: Icons.code_rounded,
                 iconColor: const Color(0xFF0175C2),
                 iconBg: const Color(0xFFE3F2FD),
-                title: 'Manage Skills',
-                subtitle: 'Update your expertise',
+                title: 'Manage Skills & Expertise',
+                subtitle: 'Update your tech stack tags',
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
                       builder: (_) => const EditSkillsScreen()),
@@ -772,11 +844,33 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
                 ),
               ),
               _MenuItem(
+                icon: Icons.settings_outlined,
+                iconColor: Colors.blueGrey,
+                iconBg: const Color(0xFFECEFF1),
+                title: 'Expert Settings',
+                subtitle: 'Booking rules & preferences',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const ExpertSettingsScreen()),
+                ),
+              ),
+              _MenuItem(
+                icon: Icons.support_agent_rounded,
+                iconColor: Colors.teal,
+                iconBg: const Color(0xFFE0F2F1),
+                title: 'Help & Partner Support',
+                subtitle: 'FAQ and concierge desk',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const ExpertHelpSupportScreen()),
+                ),
+              ),
+              _MenuItem(
                 icon: Icons.lock_outline_rounded,
                 iconColor: Colors.blueGrey,
                 iconBg: const Color(0xFFECEFF1),
                 title: 'Change Password',
-                subtitle: 'Update your password',
+                subtitle: 'Update your login password',
                 onTap: () => _showChangePassword(context),
                 isLast: true,
               ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import 'expert_bookings_screen.dart'; // Needed for ExpertBookingData
+import 'expert_video_session_screen.dart';
+import 'expert_session_notes_screen.dart';
 
 class ExpertBookingDetailScreen extends StatelessWidget {
   final ExpertBookingData data;
@@ -49,7 +51,7 @@ class ExpertBookingDetailScreen extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     // Action Buttons
-                    _buildActionButtons(primaryGreen),
+                    _buildActionButtons(context, primaryGreen),
                     const SizedBox(height: 24),
 
                     // Footer Text
@@ -584,25 +586,37 @@ class ExpertBookingDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(Color primaryGreen) {
+  Widget _buildActionButtons(BuildContext context, Color primaryGreen) {
     return Column(
       children: [
+        // Join Video Session button
         SizedBox(
           width: double.infinity,
           height: 50,
           child: ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ExpertVideoSessionScreen(
+                    menteeName: data.learnerName,
+                    sessionTitle: data.topic,
+                    menteeAvatar: data.avatarUrl,
+                  ),
+                ),
+              );
+            },
             icon: const Icon(
-              Icons.check_circle_outline,
+              Icons.videocam_rounded,
               color: Colors.white,
               size: 20,
             ),
             label: const Text(
-              "Accept Booking",
+              "Join Live Video Call",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 15,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
             style: ElevatedButton.styleFrom(
@@ -614,28 +628,103 @@ class ExpertBookingDetailScreen extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
+
+        // Session Notes button
         SizedBox(
           width: double.infinity,
-          height: 50,
+          height: 48,
           child: OutlinedButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ExpertSessionNotesScreen(
+                    menteeName: data.learnerName,
+                    sessionTitle: data.topic,
+                    sessionDate: '${data.date} at ${data.time}',
+                  ),
+                ),
+              );
+            },
             icon: const Icon(
-              Icons.cancel_outlined,
-              color: AppColors.ink,
-              size: 20,
+              Icons.note_alt_outlined,
+              color: AppColors.primary,
+              size: 18,
             ),
             label: const Text(
-              "Decline Session",
+              "Post-Session Summary & Notes",
               style: TextStyle(
-                color: AppColors.ink,
-                fontSize: 15,
+                color: AppColors.primary,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: AppColors.primary, width: 1.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Decline Button
+        SizedBox(
+          width: double.infinity,
+          height: 46,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18)),
+                  title: const Text('Decline Session?'),
+                  content: Text(
+                      'Are you sure you want to decline the session with ${data.learnerName}? Declining multiple sessions within 24 hours may affect your mentor ranking.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Cancel',
+                          style: TextStyle(color: AppColors.muted)),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                'Session request from ${data.learnerName} was declined.'),
+                          ),
+                        );
+                      },
+                      child: const Text('Decline'),
+                    ),
+                  ],
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.cancel_outlined,
+              color: AppColors.muted,
+              size: 18,
+            ),
+            label: const Text(
+              "Decline Booking",
+              style: TextStyle(
+                color: AppColors.muted,
+                fontSize: 13.5,
                 fontWeight: FontWeight.w600,
               ),
             ),
             style: OutlinedButton.styleFrom(
               backgroundColor: Colors.white,
-              side: const BorderSide(color: AppColors.line, width: 1.5),
+              side: const BorderSide(color: AppColors.line, width: 1),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

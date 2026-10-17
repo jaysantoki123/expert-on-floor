@@ -1,10 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/screens/expert/expert_chat_list_screen.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
-import '../learner/conversations_screen.dart';
+import 'expert_chat_list_screen.dart';
 import 'expert_profile_screen.dart';
 import '../learner/notifications_screen.dart';
 import 'expert_bookings_screen.dart';
@@ -14,6 +13,16 @@ import 'expert_earnings_screen.dart';
 import 'expert_availability_screen.dart';
 import 'expert_booking_analytics_screen.dart';
 import 'expert_withdraw_screen.dart';
+import 'expert_manage_services_screen.dart';
+import 'expert_learners_screen.dart';
+import 'expert_community_answers_screen.dart';
+import 'expert_resources_screen.dart';
+import 'expert_verification_screen.dart';
+import 'expert_settings_screen.dart';
+import 'expert_help_support_screen.dart';
+import 'expert_video_session_screen.dart';
+import 'expert_today_sessions_screen.dart';
+import 'expert_payout_methods_screen.dart';
 import '../login_screen.dart';
 
 class ExpertDashboardScreen extends StatefulWidget {
@@ -499,44 +508,83 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                 ),
                 const SizedBox(height: 16),
                 // Next Session Card
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(12),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ExpertVideoSessionScreen(
+                          menteeName: 'Priya Mehta',
+                          sessionTitle: 'Career Guidance & Roadmap Review',
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.calendar_today_rounded,
-                        color: Colors.white,
-                        size: 20,
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Text(
-                          'Next Session',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white60,
-                            fontWeight: FontWeight.w500,
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.calendar_today_rounded,
+                            color: Colors.white,
+                            size: 20,
                           ),
                         ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Today, 11:00 AM',
-                          style: TextStyle(
-                            fontSize: 14,
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Next Session • Tap to Enter Room',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white70,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              Text(
+                                'Today, 11:00 AM (Priya Mehta)',
+                                style: TextStyle(
+                                  fontSize: 13.5,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
                             color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'Join Call',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryDark,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -604,6 +652,11 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
           title: 'Total Sessions',
           value: '24',
           growth: '+ 20%',
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ExpertTodaySessionsScreen()),
+            );
+          },
         ),
         _buildOverviewCard(
           icon: Icons.payments_outlined,
@@ -612,6 +665,11 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
           title: 'Total Earnings',
           value: '₹24,500',
           growth: '+ 18%',
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const ExpertEarningsScreen()),
+            );
+          },
         ),
         _buildOverviewCard(
           icon: Icons.star_border_rounded,
@@ -766,7 +824,12 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => const ExpertEarningsScreen()),
+                  );
+                },
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.primary,
                   padding: EdgeInsets.zero,
@@ -948,7 +1011,18 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
               // CTA Button
               session.joinable
                   ? ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => ExpertVideoSessionScreen(
+                              menteeName: session.learner,
+                              sessionTitle: session.title,
+                              menteeAvatar: session.avatarUrl,
+                            ),
+                          ),
+                        );
+                      },
                       icon: const Icon(Icons.videocam_rounded, size: 14, color: Colors.white),
                       label: const Text(
                         'Join Now',
@@ -967,7 +1041,14 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                       ),
                     )
                   : OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ExpertBookingsScreen(),
+                          ),
+                        );
+                      },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Color(0xFF22C55E), width: 1),
                         shape: RoundedRectangleBorder(
@@ -994,107 +1075,302 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
   void _showMenuBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       backgroundColor: Colors.white,
       builder: (context) {
         return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                 Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Color(0xFFE5E7EB),
-                      borderRadius: BorderRadius.all(Radius.circular(2)),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE5E7EB),
+                        borderRadius: BorderRadius.all(Radius.circular(2)),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Quick Actions',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.ink,
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Expert Center & Navigation',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  leading: const Icon(Icons.psychology_outlined, color: Color(0xFF22C55E)),
-                  title: const Text('Edit Skills', style: TextStyle(fontWeight: FontWeight.w600)),
-                  onTap: () {
-                    Navigator.pop(context); // Close sheet
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => EditSkillsScreen()),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.event_available_outlined, color: Color(0xFF22C55E)),
-                  title: const Text('Manage Availability', style: TextStyle(fontWeight: FontWeight.w600)),
-                  onTap: () {
-                    Navigator.pop(context); // Close sheet
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ExpertAvailabilityScreen()),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.analytics_outlined, color: Colors.indigo),
-                  title: const Text('Booking Analytics', style: TextStyle(fontWeight: FontWeight.w600)),
-                  onTap: () {
-                    Navigator.pop(context); // Close sheet
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ExpertBookingAnalyticsScreen()),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.account_balance_outlined, color: Colors.orange),
-                  title: const Text('Withdraw Funds', style: TextStyle(fontWeight: FontWeight.w600)),
-                  onTap: () {
-                    Navigator.pop(context); // Close sheet
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ExpertWithdrawScreen()),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.settings_outlined, color: AppColors.muted),
-                  title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.w600)),
-                  onTap: () => Navigator.pop(context),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                  title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.redAccent)),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    await context.read<AuthProvider>().logout();
-                    if (context.mounted) {
-                      Navigator.pushAndRemoveUntil(
+                  const SizedBox(height: 12),
+
+                  // Mentorship & Catalog
+                  _menuItem(
+                    icon: Icons.workspace_premium_rounded,
+                    iconColor: AppColors.primary,
+                    title: 'Services & Pricing',
+                    subtitle: 'Manage your consultation packages',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        (route) => false,
+                        MaterialPageRoute(
+                            builder: (_) => const ExpertManageServicesScreen()),
                       );
-                    }
-                  },
-                ),
-              ],
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.calendar_month_rounded,
+                    iconColor: const Color(0xFF22C55E),
+                    title: "Today's Schedule & Slots",
+                    subtitle: 'View your live appointments',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ExpertTodaySessionsScreen()),
+                      );
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.people_outline_rounded,
+                    iconColor: Colors.teal,
+                    title: 'My Learners & Mentees',
+                    subtitle: 'Track student progress & roadmap notes',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ExpertLearnersScreen()),
+                      );
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.forum_outlined,
+                    iconColor: const Color(0xFF8B5CF6),
+                    title: 'Community Q&A Answers',
+                    subtitle: 'Answer questions to earn mentorship leads',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                const ExpertCommunityAnswersScreen()),
+                      );
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.event_available_outlined,
+                    iconColor: const Color(0xFF22C55E),
+                    title: 'Manage Availability',
+                    subtitle: 'Set weekly hours and holiday mode',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ExpertAvailabilityScreen()),
+                      );
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.psychology_outlined,
+                    iconColor: const Color(0xFF0284C7),
+                    title: 'Edit Skills & Expertise',
+                    subtitle: 'Update your tech stack tags',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => EditSkillsScreen()),
+                      );
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.folder_shared_outlined,
+                    iconColor: Colors.indigo,
+                    title: 'Shared Learning Resources',
+                    subtitle: 'Cheat sheets, repos, & interview guides',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ExpertResourcesScreen()),
+                      );
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.analytics_outlined,
+                    iconColor: Colors.deepPurple,
+                    title: 'Booking Analytics',
+                    subtitle: 'Conversion rate & session volume',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) =>
+                                const ExpertBookingAnalyticsScreen()),
+                      );
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.account_balance_outlined,
+                    iconColor: Colors.orange,
+                    title: 'Withdraw Funds',
+                    subtitle: 'Request payouts to your bank account',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ExpertWithdrawScreen()),
+                      );
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.credit_card_rounded,
+                    iconColor: const Color(0xFF0F766E),
+                    title: 'Payout Methods (Bank & UPI)',
+                    subtitle: 'Manage linked accounts and IFSC',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ExpertPayoutMethodsScreen()),
+                      );
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.verified_user_outlined,
+                    iconColor: const Color(0xFF0284C7),
+                    title: 'Verification & Trust Badges',
+                    subtitle: 'Identity and credentials checklist',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ExpertVerificationScreen()),
+                      );
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.settings_outlined,
+                    iconColor: AppColors.muted,
+                    title: 'Expert Settings',
+                    subtitle: 'Booking rules, reminders & preferences',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ExpertSettingsScreen()),
+                      );
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.support_agent_rounded,
+                    iconColor: Colors.teal,
+                    title: 'Help & Partner Support',
+                    subtitle: 'FAQ and concierge contact desk',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const ExpertHelpSupportScreen()),
+                      );
+                    },
+                  ),
+                  const Divider(height: 18, color: AppColors.line),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFEBEE),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.logout_rounded,
+                          color: Colors.redAccent, size: 20),
+                    ),
+                    title: const Text(
+                      'Logout',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.redAccent,
+                        fontSize: 14,
+                      ),
+                    ),
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await context.read<AuthProvider>().logout();
+                      if (context.mounted) {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                          (route) => false,
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _menuItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: iconColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: iconColor, size: 20),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 13.5,
+          fontWeight: FontWeight.w700,
+          color: AppColors.ink,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(fontSize: 11, color: AppColors.muted),
+      ),
+      trailing: const Icon(Icons.chevron_right_rounded,
+          color: AppColors.muted, size: 18),
+      onTap: onTap,
     );
   }
 }
