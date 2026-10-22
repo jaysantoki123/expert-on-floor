@@ -57,7 +57,9 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: String.fromEnvironment('602850848367-ecl8ahv3c4qoib0adu8fu7r04l1v4q6q.apps.googleusercontent.com'),
+    // This must be the Firebase API key, not the OAuth client ID.  The value
+    // matches android/app/google-services.json for this Android application.
+    apiKey: 'AIzaSyBtyJo1lt8fgqpo8-E7WYN_eYBvrmfFoWM',
     appId: '1:135959347706:android:249d643bcff702681aa443',
     messagingSenderId: '135959347706',
     projectId: 'expert-on-floor',

@@ -7,18 +7,24 @@ import xss from 'xss';
 let io = null;
 
 export const initSocket = (server) => {
-  const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000')
+  const allowedOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:5173,http://localhost:63377')
     .split(',')
     .map(o => o.trim())
     .filter(Boolean);
 
+  const isOriginAllowed = (origin) => {
+    if (!origin) return true;
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return true;
+    // Support local development on dynamic ports (e.g., Flutter web, Vite, etc.)
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+    return false;
+  };
+
   io = new Server(server, {
     cors: {
       origin: (origin, callback) => {
-       
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
-          return callback(null, origin);
+        if (isOriginAllowed(origin)) {
+          return callback(null, true);
         }
         return callback(new Error(`Origin ${origin} not allowed by CORS`));
       },

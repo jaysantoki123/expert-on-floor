@@ -23,6 +23,8 @@ import 'expert_help_support_screen.dart';
 import 'expert_video_session_screen.dart';
 import 'expert_today_sessions_screen.dart';
 import 'expert_payout_methods_screen.dart';
+import '../learner/learner_dashboard_screen.dart';
+import '../../models/user_role.dart';
 import '../login_screen.dart';
 
 class ExpertDashboardScreen extends StatefulWidget {
@@ -173,10 +175,10 @@ class _NavItem extends StatelessWidget {
         child: Center(
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             decoration: BoxDecoration(
               color: isActive ? AppColors.primarySoft : Colors.transparent,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -186,15 +188,17 @@ class _NavItem extends StatelessWidget {
                   color: isActive ? AppColors.primary : AppColors.muted,
                   size: 22,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                    color: isActive ? AppColors.primary : AppColors.muted,
+                const SizedBox(height: 3),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    style: TextStyle(
+                      fontSize: 9.5,
+                      fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                      color: isActive ? AppColors.primary : AppColors.muted,
+                    ),
                   ),
                 ),
               ],
@@ -262,39 +266,83 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
 
   Widget _buildHeader(BuildContext context, String? profileImage) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            GestureDetector(
-              onTap: () => _showMenuBottomSheet(context),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.line, width: 1),
-                ),
-                child: const Icon(
-                  Icons.menu_rounded,
-                  color: AppColors.ink,
-                  size: 22,
+        Expanded(
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: () => _showMenuBottomSheet(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.line, width: 1),
+                  ),
+                  child: const Icon(
+                    Icons.menu_rounded,
+                    color: AppColors.ink,
+                    size: 20,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 14),
-            const Text(
-              'Expert Dashboard',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.ink,
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Expert Dashboard',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        const SizedBox(width: 8),
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
+            // Switch to Learner
+            Tooltip(
+              message: 'Switch to Learner View',
+              child: InkWell(
+                onTap: () {
+                  context.read<AuthProvider>().switchRolePreview(UserRole.learner);
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const LearnerDashboardScreen()),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFF93C5FD), width: 1),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.swap_horiz_rounded, size: 15, color: Color(0xFF1D4ED8)),
+                      SizedBox(width: 3),
+                      Text(
+                        'Learner',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF1D4ED8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
             // Notifications Icon
             GestureDetector(
               onTap: () {
@@ -306,8 +354,8 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                 clipBehavior: Clip.none,
                 children: [
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
                       color: const Color(0xFFF3F4F6),
                       shape: BoxShape.circle,
@@ -316,23 +364,23 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                     child: const Icon(
                       Icons.notifications_none_rounded,
                       color: AppColors.ink,
-                      size: 22,
+                      size: 20,
                     ),
                   ),
                   Positioned(
                     right: 2,
                     top: 2,
                     child: Container(
-                      width: 10,
-                      height: 10,
+                      width: 9,
+                      height: 9,
                       decoration: const BoxDecoration(
                         color: Color(0xFF22C55E),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
                         child: Container(
-                          width: 4,
-                          height: 4,
+                          width: 3,
+                          height: 3,
                           decoration: const BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
@@ -344,26 +392,26 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             // Profile image with green indicator
             Stack(
               children: [
                 CircleAvatar(
-                  radius: 22,
+                  radius: 19,
                   backgroundColor: AppColors.primarySoft,
                   backgroundImage: profileImage != null && profileImage.isNotEmpty
                       ? NetworkImage(profileImage)
                       : null,
                   child: profileImage == null || profileImage.isEmpty
-                      ? const Icon(Icons.person, color: AppColors.primary)
+                      ? const Icon(Icons.person, color: AppColors.primary, size: 20)
                       : null,
                 ),
                 Positioned(
                   right: 0,
                   bottom: 0,
                   child: Container(
-                    width: 11,
-                    height: 11,
+                    width: 10,
+                    height: 10,
                     decoration: BoxDecoration(
                       color: const Color(0xFF22C55E),
                       shape: BoxShape.circle,
@@ -448,6 +496,8 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                           const SizedBox(height: 6),
                           Text(
                             name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w900,
@@ -458,12 +508,16 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              Text(
-                                role,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white70,
+                              Flexible(
+                                child: Text(
+                                  role,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white70,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -539,16 +593,18 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                           child: const Icon(
                             Icons.calendar_today_rounded,
                             color: Colors.white,
-                            size: 20,
+                            size: 18,
                           ),
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: 12),
                         const Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Next Session • Tap to Enter Room',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: Colors.white70,
@@ -558,6 +614,8 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                               SizedBox(height: 3),
                               Text(
                                 'Today, 11:00 AM (Priya Mehta)',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 13.5,
                                   color: Colors.white,
@@ -567,6 +625,7 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                             ],
                           ),
                         ),
+                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
@@ -643,7 +702,7 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
       physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 14,
       mainAxisSpacing: 14,
-      childAspectRatio: 1.35,
+      childAspectRatio: 1.2,
       children: [
         _buildOverviewCard(
           icon: Icons.calendar_month_rounded,
@@ -739,24 +798,32 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                 ),
                 child: Icon(icon, color: iconColor, size: 18),
               ),
-              const SizedBox(width: 10),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.muted,
-                  fontWeight: FontWeight.w500,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.muted,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
           ),
           const Spacer(),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              color: AppColors.ink,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: AppColors.ink,
+              ),
             ),
           ),
           const SizedBox(height: 6),
@@ -778,11 +845,15 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                 ),
               ),
               const SizedBox(width: 6),
-              const Text(
-                'vs last month',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: AppColors.muted,
+              const Expanded(
+                child: Text(
+                  'vs last month',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: AppColors.muted,
+                  ),
                 ),
               ),
             ],
@@ -1024,17 +1095,20 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                         );
                       },
                       icon: const Icon(Icons.videocam_rounded, size: 14, color: Colors.white),
-                      label: const Text(
-                        'Join Now',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                      label: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Join Now',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -1054,14 +1128,17 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       ),
-                      child: const Text(
-                        'View Details',
-                        style: TextStyle(
-                          color: Color(0xFF22C55E),
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'View Details',
+                          style: TextStyle(
+                            color: Color(0xFF22C55E),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -1294,6 +1371,20 @@ class _ExpertDashboardTabState extends State<_ExpertDashboardTab> {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const ExpertHelpSupportScreen()),
+                      );
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.swap_horiz_rounded,
+                    iconColor: const Color(0xFF1D4ED8),
+                    title: 'Switch to Learner Dashboard',
+                    subtitle: 'Preview courses, roadmap & mentor booking',
+                    onTap: () {
+                      Navigator.pop(context);
+                      context.read<AuthProvider>().switchRolePreview(UserRole.learner);
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                            builder: (_) => const LearnerDashboardScreen()),
                       );
                     },
                   ),

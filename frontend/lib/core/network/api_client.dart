@@ -69,11 +69,12 @@ class ApiClient {
     Object? body,
   }) async {
     final uri = Uri.parse('$_baseUrl$path');
-    
-    // H27 Fix: Enforce SSL by rejecting plaintext HTTP unless on local dev emulators
-    if (uri.scheme != 'https' && !uri.host.contains('localhost') && uri.host != '10.0.2.2') {
+
+    if (uri.scheme != 'https' && !_isAllowedHttpDevelopmentHost(uri.host)) {
       throw NetworkException('Insecure HTTP connection is not allowed');
     }
+
+    debugPrint('API $method $uri');
 
     final requestHeaders = <String, String>{
       'Content-Type': 'application/json',
@@ -128,7 +129,10 @@ class ApiClient {
           throw UnknownException('Unsupported HTTP method: $method');
       }
     } on TimeoutException {
-      throw TimeoutException('Request timed out');
+      throw NetworkException(
+        'Could not reach the API at ${uri.host}:${uri.hasPort ? uri.port : 5000}. '
+        'Ensure the server is running and this device can reach that address.',
+      );
     } catch (e) {
       throw NetworkException('Network error: $e');
     }
@@ -295,6 +299,25 @@ class ApiClient {
         throw UnknownException(message, statusCode: response.statusCode);
     }
   }
+
+  bool _isAllowedHttpDevelopmentHost(String host) {
+    if (host == 'localhost' || host == '10.0.2.2') return true;
+    if (!kDebugMode) return false;
+
+    final octets = host.split('.');
+    if (octets.length != 4) return false;
+    final values = octets.map(int.tryParse).toList();
+    if (values.any((value) => value == null || value < 0 || value > 255)) {
+      return false;
+    }
+
+    final first = values[0]!;
+    final second = values[1]!;
+    return first == 10 ||
+        (first == 172 && second >= 16 && second <= 31) ||
+        (first == 192 && second == 168);
+  }
+
   bool _isTokenExpired(String token) {
     try {
       final parts = token.split('.');

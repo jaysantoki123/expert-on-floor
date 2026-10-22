@@ -1,25 +1,56 @@
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode, kIsWeb;
 
 class ApiConstants {
-  // Web/Backend OAuth 2.0 Client ID (configure via: --dart-define=GOOGLE_CLIENT_ID=...)
-  static const String googleClientId = String.fromEnvironment('GOOGLE_CLIENT_ID');
+  // May be overridden for another OAuth application at build time.
+  static const String googleClientId = String.fromEnvironment(
+    'GOOGLE_CLIENT_ID',
+    defaultValue:
+        '602850848367-tssnldslujlhkkei23iedefmp6pjvstk.apps.googleusercontent.com',
+  );
 
-  // Base URL from environment, with fallback for local development
-  // For production/staging, always pass via: --dart-define=API_BASE_URL=https://your-domain.com/v1
-  static String get _baseUrlFromEnv => const String.fromEnvironment('API_BASE_URL');
+  // A physical device must be told how to reach the API at build time.
+  static const String _baseUrlFromEnv = "http://10.253.53.56:5000/v1";
 
-  // Physical device testing: override via --dart-define=API_BASE_URL=https://<your-ip-or-domain>:5000/v1
-  // Do NOT hardcode private IPs — they leak internal network topology.
+  static const String _iosFirebaseApiKey = String.fromEnvironment(
+    'FIREBASE_IOS_API_KEY',
+  );
+  static const String _legacyWebFirebaseApiKey = String.fromEnvironment(
+    '602850848367-tssnldslujlhkkei23iedefmp6pjvstk.apps.googleusercontent.com',
+  );
+
+  /// Prints the compile-time configuration used by this app in debug builds.
+  /// Dart does not expose an API to enumerate arbitrary `--dart-define` keys,
+  /// so this lists every define currently read by the frontend explicitly.
+  static void logDartDefines() {
+    if (!kDebugMode) return;
+
+    debugPrint('--- Dart defines ---');
+    debugPrint('API_BASE_URL=${_display(_baseUrlFromEnv)}');
+    debugPrint('GOOGLE_CLIENT_ID=${_display(googleClientId)}');
+    debugPrint('FIREBASE_IOS_API_KEY=${_redact(_iosFirebaseApiKey)}');
+    debugPrint(
+      'legacy Firebase web API-key define=${_redact(_legacyWebFirebaseApiKey)}',
+    );
+    debugPrint('--------------------');
+  }
+
+  static String _display(String value) =>
+      value.isEmpty ? '<not set>' : value;
+
+  static String _redact(String value) {
+    if (value.isEmpty) return '<not set>';
+    if (value.length <= 8) return '<configured>';
+    return '${value.substring(0, 4)}...${value.substring(value.length - 4)}';
+  }
+
   static const bool useAndroidEmulatorHost = false;
 
   static String get baseUrl {
-    // If provided via --dart-define, use it (should be https:// in production)
     if (_baseUrlFromEnv.isNotEmpty) {
       return _baseUrlFromEnv;
     }
-    
-    // Local development fallbacks — HTTP is acceptable only for localhost
+
     if (kIsWeb) {
       return 'http://localhost:5000/v1';
     }
@@ -27,7 +58,7 @@ class ApiConstants {
       if (useAndroidEmulatorHost) {
         return 'http://10.0.2.2:5000/v1';
       }
-      // Physical device: must be configured via --dart-define=API_BASE_URL
+
       throw StateError(
         'API_BASE_URL not set. Run with: --dart-define=API_BASE_URL=https://<your-server>:5000/v1',
       );

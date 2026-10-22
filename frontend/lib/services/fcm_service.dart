@@ -5,14 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../core/network/api_client.dart';
 import '../core/storage/secure_storage.dart';
-import '../utils/api_constants.dart';
 import '../screens/learner/my_bookings_screen.dart';
 import '../screens/learner/conversations_screen.dart';
+import '../firebase_options.dart';
 
 // Top-level background message handler
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   debugPrint('🔔 Background FCM message received: ${message.messageId}');
 }
 

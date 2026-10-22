@@ -9,7 +9,7 @@ import '../providers/auth_provider.dart';
 import 'register_screen.dart';
 import '../screens/learner/learner_dashboard_screen.dart';
 import 'expert/expert_dashboard_screen.dart';
-// import 'expert_listing_screen.dart';
+import '../models/user_role.dart';
 import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -53,7 +53,12 @@ class _LoginScreenState extends State<LoginScreen> {
     if (success) {
       _snack('Welcome back! 👋');
       if (mounted) {
-        final isExpert = authProvider.isExpert;
+        if (_role == 'Expert') {
+          authProvider.switchRolePreview(UserRole.expert);
+        } else {
+          authProvider.switchRolePreview(UserRole.learner);
+        }
+        final isExpert = _role == 'Expert' || authProvider.isExpert;
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (_) => isExpert ? const ExpertDashboardScreen() : const LearnerDashboardScreen(),
@@ -64,6 +69,21 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       _snack(authProvider.error ?? 'Login failed', error: true);
     }
+  }
+
+  void _quickPreview() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    authProvider.switchRolePreview(
+      _role == 'Expert' ? UserRole.expert : UserRole.learner,
+    );
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => _role == 'Expert'
+            ? const ExpertDashboardScreen()
+            : const LearnerDashboardScreen(),
+      ),
+      (route) => false,
+    );
   }
 
   Future<void> _googleLogin() async {
@@ -192,13 +212,83 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 22),
 
               // ── Role Selector ──
-              const _FieldLabel('Login as'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const _FieldLabel('Login as'),
+                  TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        if (_role == 'Expert') {
+                          _emailCtrl.text = 'learner_1780147696277@test.com';
+                          _passCtrl.text = 'password123';
+                        } else {
+                          _emailCtrl.text = 'learner_1780147982813@test.com';
+                          _passCtrl.text = 'password123';
+                        }
+                      });
+                      _snack('Filled $_role demo credentials! 🚀');
+                    },
+                    icon: const Icon(Icons.flash_on_rounded, size: 14, color: AppColors.primary),
+                    label: Text(
+                      'Auto-fill $_role',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 10),
               RoleSelector(
                 selected: _role,
-                onChanged: (r) => setState(() => _role = r),
+                onChanged: (r) {
+                  setState(() {
+                    _role = r;
+                  });
+                },
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 12),
+              // Direct Preview Bypass
+              InkWell(
+                onTap: _quickPreview,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: _role == 'Expert' ? const Color(0xFFEFF6FF) : const Color(0xFFECFDF5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _role == 'Expert' ? const Color(0xFF93C5FD) : const Color(0xFFA7F3D0),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.visibility_rounded,
+                        size: 16,
+                        color: _role == 'Expert' ? const Color(0xFF1D4ED8) : const Color(0xFF059669),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Direct Preview as $_role (Skip Login)',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: _role == 'Expert' ? const Color(0xFF1D4ED8) : const Color(0xFF059669),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
 
               // ── Login Button ──
               AppButton(label: 'Login', loading: isLoading, onPressed: _login),

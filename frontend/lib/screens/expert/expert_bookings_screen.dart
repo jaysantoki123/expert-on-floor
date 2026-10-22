@@ -157,35 +157,40 @@ class _ExpertBookingsScreenState extends State<ExpertBookingsScreen>
   // Header
   // ══════════════════════════════════════════════════════════════
   Widget _buildHeader() {
+    final canPop = Navigator.canPop(context);
     return Container(
       color: AppColors.white,
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.field,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.line),
-              ),
-              child: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: AppColors.ink,
-                size: 18,
+          if (canPop) ...[
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.field,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.line),
+                ),
+                child: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: AppColors.ink,
+                  size: 18,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 14),
+            const SizedBox(width: 14),
+          ],
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Learner Sessions',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
@@ -195,11 +200,14 @@ class _ExpertBookingsScreenState extends State<ExpertBookingsScreen>
                 ),
                 Text(
                   'Manage your scheduled bookings',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 12, color: AppColors.muted),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 8),
           // Search
           GestureDetector(
             onTap: () {
@@ -247,6 +255,7 @@ class _ExpertBookingsScreenState extends State<ExpertBookingsScreen>
         ),
         child: TabBar(
           controller: _tabController,
+          labelPadding: const EdgeInsets.symmetric(horizontal: 6),
           indicator: BoxDecoration(
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(10),
@@ -265,17 +274,30 @@ class _ExpertBookingsScreenState extends State<ExpertBookingsScreen>
           dividerColor: Colors.transparent,
           tabs: [
             Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('Upcoming'),
-                  const SizedBox(width: 4),
-                  _tabBadge('$upcomingCount'),
-                ],
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Upcoming'),
+                    const SizedBox(width: 4),
+                    _tabBadge('$upcomingCount'),
+                  ],
+                ),
               ),
             ),
-            const Tab(text: 'Past'),
-            const Tab(text: 'Cancelled'),
+            const Tab(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('Past'),
+              ),
+            ),
+            const Tab(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('Cancelled'),
+              ),
+            ),
           ],
         ),
       ),
@@ -378,7 +400,7 @@ class _ExpertBookingsScreenState extends State<ExpertBookingsScreen>
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
       physics: const BouncingScrollPhysics(),
       itemCount: bookings.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
@@ -505,6 +527,8 @@ class _ExpertBookingCard extends StatelessWidget {
                     children: [
                       Text(
                         data.learnerName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -514,28 +538,34 @@ class _ExpertBookingCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         data.topic.isNotEmpty ? data.topic : 'General Session',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             fontSize: 11, color: AppColors.muted),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 // Status chip
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
+                    horizontal: 8,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
                     color: _statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text(
-                    _formatStatusLabel(data.status),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: _statusColor,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      _formatStatusLabel(data.status),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: _statusColor,
+                      ),
                     ),
                   ),
                 ),
@@ -588,31 +618,37 @@ class _ExpertBookingCard extends StatelessWidget {
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.redAccent,
                               side: const BorderSide(color: Colors.redAccent),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Reject',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('Reject',
+                                  style: TextStyle(fontWeight: FontWeight.bold)),
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: ElevatedButton(
                             onPressed: () {},
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Accept',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white)),
+                            child: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('Accept',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white)),
+                            ),
                           ),
                         ),
                       ],
@@ -623,34 +659,40 @@ class _ExpertBookingCard extends StatelessWidget {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () {},
-                            icon: const Icon(Icons.close_rounded, size: 18),
-                            label: const Text('Cancel'),
+                            icon: const Icon(Icons.close_rounded, size: 16),
+                            label: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text('Cancel'),
+                            ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.muted,
                               side: const BorderSide(color: AppColors.line),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: () {},
                             icon: const Icon(Icons.videocam_rounded,
-                                size: 18, color: Colors.white),
-                            label: const Text(
-                              'Join Session',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
+                                size: 16, color: Colors.white),
+                            label: const FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                'Join Session',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white),
+                              ),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),

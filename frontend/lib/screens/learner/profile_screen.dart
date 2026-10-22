@@ -16,6 +16,8 @@ import 'my_reviews_screen.dart';
 import 'payment_history_screen.dart';
 import 'notifications_screen.dart';
 import 'saved_experts_screen.dart';
+import '../expert/expert_dashboard_screen.dart';
+import '../../models/user_role.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -603,8 +605,22 @@ class _ProfileScreenState extends State<ProfileScreen>
                 iconColor: Colors.blueGrey,
                 iconBg: const Color(0xFFECEFF1),
                 title: 'Change Password',
-                    subtitle: 'Update your password',
+                subtitle: 'Update your password',
                 onTap: () => _showChangePassword(context),
+              ),
+              _MenuItem(
+                icon: Icons.swap_horiz_rounded,
+                iconColor: const Color(0xFF059669),
+                iconBg: const Color(0xFFECFDF5),
+                title: 'Switch to Expert Dashboard',
+                subtitle: 'Manage client sessions, availability & earnings',
+                onTap: () {
+                  context.read<AuthProvider>().switchRolePreview(UserRole.expert);
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const ExpertDashboardScreen()),
+                  );
+                },
+                isLast: true,
               ),
               // _MenuItem(
               //   icon: Icons.privacy_tip_outlined,

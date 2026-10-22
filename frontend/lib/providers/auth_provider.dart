@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
+import '../models/user_role.dart';
 import '../services/auth_service.dart';
 import '../services/fcm_service.dart';
 import '../core/exceptions/app_exceptions.dart';
@@ -285,6 +286,20 @@ class AuthProvider with ChangeNotifier {
       }
     } catch (e) {
       debugPrint('❌ Error syncing FCM token in AuthProvider: $e');
+    }
+  }
+
+  void switchRolePreview(UserRole newRole) {
+    if (_user != null) {
+      _user = UserModel(
+        id: _user!.id,
+        name: _user!.name,
+        email: _user!.email,
+        phone: _user!.phone,
+        role: newRole,
+        profileImage: _user!.profileImage,
+      );
+      notifyListeners();
     }
   }
 

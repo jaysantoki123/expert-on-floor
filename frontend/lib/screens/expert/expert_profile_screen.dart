@@ -22,6 +22,8 @@ import 'edit_skills_screen.dart';
 import 'expert_availability_screen.dart';
 import 'expert_booking_analytics_screen.dart';
 import 'expert_withdraw_screen.dart';
+import '../learner/learner_dashboard_screen.dart';
+import '../../models/user_role.dart';
 
 class ExpertProfileScreen extends StatefulWidget {
   const ExpertProfileScreen({super.key});
@@ -247,6 +249,8 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
                           const SizedBox(height: 4),
                           Text(
                             user?.name ?? 'Expert User',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
@@ -290,29 +294,36 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
                           ),
                           const SizedBox(height: 8),
                           // Star rating row
-                          Row(
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
-                              ...List.generate(
-                                5,
-                                (i) => Icon(
-                                  i < 4
-                                      ? Icons.star_rounded
-                                      : Icons.star_half_rounded,
-                                  color: const Color(0xFFFFD700),
-                                  size: 16,
-                                ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ...List.generate(
+                                    5,
+                                    (i) => Icon(
+                                      i < 4
+                                          ? Icons.star_rounded
+                                          : Icons.star_half_rounded,
+                                      color: const Color(0xFFFFD700),
+                                      size: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '4.8',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white.withValues(alpha: 0.95),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 4),
                               Text(
-                                '4.8',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white.withValues(alpha: 0.95),
-                                ),
-                              ),
-                              Text(
-                                ' (120 reviews)',
+                                '(120 reviews)',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: Colors.white.withValues(alpha: 0.7),
@@ -505,19 +516,25 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.code_rounded, color: AppColors.primary, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'Skills & Expertise',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.ink,
+              const Expanded(
+                child: Row(
+                  children: [
+                    Icon(Icons.code_rounded, color: AppColors.primary, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Skills & Expertise',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.ink,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               GestureDetector(
                 onTap: () => Navigator.of(context).push(
@@ -872,6 +889,19 @@ class _ExpertProfileScreenState extends State<ExpertProfileScreen>
                 title: 'Change Password',
                 subtitle: 'Update your login password',
                 onTap: () => _showChangePassword(context),
+              ),
+              _MenuItem(
+                icon: Icons.swap_horiz_rounded,
+                iconColor: const Color(0xFF1D4ED8),
+                iconBg: const Color(0xFFEFF6FF),
+                title: 'Switch to Learner Dashboard',
+                subtitle: 'Browse mentors, roadmaps & study resources',
+                onTap: () {
+                  context.read<AuthProvider>().switchRolePreview(UserRole.learner);
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const LearnerDashboardScreen()),
+                  );
+                },
                 isLast: true,
               ),
             ],
@@ -1632,21 +1662,29 @@ class _StatCard extends StatelessWidget {
           child: Icon(item.icon, color: item.color, size: 18),
         ),
         const SizedBox(height: 8),
-        Text(
-          item.value,
-          style: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: AppColors.ink,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            item.value,
+            maxLines: 1,
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: AppColors.ink,
+            ),
           ),
         ),
         const SizedBox(height: 2),
-        Text(
-          item.label,
-          style: const TextStyle(
-            fontSize: 11,
-            color: AppColors.muted,
-            fontWeight: FontWeight.w500,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            item.label,
+            maxLines: 1,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.muted,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
       ],
@@ -1730,6 +1768,8 @@ class _MenuItem {
                     children: [
                       Text(
                         title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -1739,6 +1779,8 @@ class _MenuItem {
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 11.5,
                           color: AppColors.muted,

@@ -173,7 +173,7 @@ class _CommunityScreenState extends State<CommunityScreen>
     super.dispose();
   }
 
-  // â”€â”€ Filtered lists â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
   List<CommunityQuestion> _applySearch(List<CommunityQuestion> list) {
     if (_searchQuery.isEmpty && _selectedTag == 'All') return list;
     return list.where((q) {
@@ -270,9 +270,6 @@ class _CommunityScreenState extends State<CommunityScreen>
             ],
           ),
         ),
-
-        
-
       ),
     );
   }
@@ -524,7 +521,7 @@ class _CommunityScreenState extends State<CommunityScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
-              children: const [Text('For You')],
+              children:[const Text('For You'),],
             ),
           ),
           const Tab(text: 'Recent'),
@@ -535,7 +532,7 @@ class _CommunityScreenState extends State<CommunityScreen>
               children: [
                 const Text('Unanswered'),
                 const SizedBox(width: 4),
-                Container(
+                Container (
                   padding: const EdgeInsets.symmetric(
                     horizontal: 5,
                     vertical: 1,
@@ -722,7 +719,6 @@ class _QuestionTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // â”€â”€ Avatar column â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Column(
               children: [
                 Container(

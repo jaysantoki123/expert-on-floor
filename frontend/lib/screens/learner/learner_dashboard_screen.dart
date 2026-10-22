@@ -183,7 +183,7 @@ class _LearnerDashboardScreenState extends State<LearnerDashboardScreen> {
                       icon: Icons.school_outlined,
                       activeIcon: Icons.school_rounded,
                       label: 'Experts',
-                      index: 1,
+                      index: 1, 
                       currentIndex: _currentIndex,
                       onTap: onTabTapped,
                     ),
@@ -470,7 +470,7 @@ class _DashboardTabState extends State<_DashboardTab>
                 ),
               ),
               Consumer<NotificationProvider>(
-                builder: (_, provider, __) {
+                builder: (_, provider, _) {
                   if (provider.unreadCount == 0) return const SizedBox.shrink();
                   return Positioned(
                     right: 10,
@@ -495,7 +495,7 @@ class _DashboardTabState extends State<_DashboardTab>
             MaterialPageRoute(builder: (_) => const ProfileScreen()),
           ),
           child: Consumer<AuthProvider>(
-            builder: (_, authProvider, __) {
+            builder: (_, authProvider, _) {
               final avatarUrl = authProvider.user?.profileImage;
               return Container(
                 width: 48,
@@ -944,10 +944,10 @@ class _DashboardTabState extends State<_DashboardTab>
           return <Widget>[
             _sessionRow(
               name: booking.expertName ?? 'Expert',
-              topic: booking.topic ?? 'Session',
+              topic: booking.topic,
               time: _formatBookingTime(booking),
-              type: booking.sessionType ?? 'Video Call',
-              avatarColor: _getAvatarColor(booking.expertId ?? 0),
+              type: booking.sessionType,
+              avatarColor: _getAvatarColor(booking.expertId),
               showJoin: booking.status == 'confirmed' && index == 0,
             ),
             if (index < bookings.length - 1)
@@ -960,7 +960,7 @@ class _DashboardTabState extends State<_DashboardTab>
 
   String _formatBookingTime(BookingModel booking) {
     // Format date and time
-    return '${booking.date.substring(0, 10) ?? ''} • ${booking.timeSlot ?? ''}';
+    return '${booking.date?.substring(0, 10) ?? ''} • ${booking.timeSlot}';
   }
 
   Color _getAvatarColor(int expertId) {
@@ -1300,7 +1300,7 @@ class _DashboardTabState extends State<_DashboardTab>
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         itemCount: mentors.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        separatorBuilder: (_, _) => const SizedBox(width: 14),
         itemBuilder: (_, i) => _MentorCard(
           expert: mentors[i],
           avatarColor: _getAvatarColor(mentors[i].expertId),
@@ -1479,7 +1479,7 @@ class _MentorCard extends StatelessWidget {
                           width: 165,
                           height: 118,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _avatarPlaceholder(),
+                          errorBuilder: (_, _, _) => _avatarPlaceholder(),
                         )
                       : _avatarPlaceholder(),
                 ),

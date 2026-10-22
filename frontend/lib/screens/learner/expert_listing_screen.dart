@@ -485,7 +485,7 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              children: const [
+              children:  [
                 Expanded(
                   child: Text(
                     '120+ mentors ready to guide your learning journey.',
@@ -496,7 +496,7 @@ class _ExpertListingScreenState extends State<ExpertListingScreen> {
                     ),
                   ),
                 ),
-                Icon(Icons.light_mode_rounded, color: AppColors.primary, size: 26),
+  
               ],
             ),
             const SizedBox(height: 14),

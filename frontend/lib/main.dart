@@ -1,6 +1,5 @@
   import 'package:flutter/material.dart';
-import 'package:flutter_application_1/screens/expert/expert_dashboard_screen.dart';
-  // import 'package:flutter_application_1/screens/splash_screen.dart';
+  import 'package:flutter_application_1/screens/splash_screen.dart';
   import 'package:provider/provider.dart';
   import 'package:firebase_core/firebase_core.dart';
   import 'core/theme/app_colors.dart';
@@ -12,22 +11,24 @@ import 'package:flutter_application_1/screens/expert/expert_dashboard_screen.dar
   import 'providers/notification_provider.dart';
   import 'services/fcm_service.dart';
   import 'firebase_options.dart';
+import 'package:flutter_application_1/utils/api_constants.dart';
+
 
   void main() async {
     WidgetsFlutterBinding.ensureInitialized();
+    ApiConstants.logDartDefines();
 
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    } catch (e) {
-      debugPrint('Firebase initialization failed: $e');
-    }
+    // Firebase Messaging must not be accessed until the default Firebase app
+    // has been created.  Do not swallow this error: continuing here would make
+    // `FirebaseMessaging.instance` fail with `[core/no-app]` later.
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
     final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
     // Initialize push notification service
-    FCMService().initialize(navigatorKey);
+    await FCMService().initialize(navigatorKey);
 
     runApp(
       MultiProvider(
@@ -92,7 +93,7 @@ import 'package:flutter_application_1/screens/expert/expert_dashboard_screen.dar
             ),
           ),
         ),
-        home: const ExpertDashboardScreen(),
+        home: const SplashScreen(),
       );
     }
   }

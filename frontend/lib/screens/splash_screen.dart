@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
+import 'login_screen.dart';
 import 'onboarding_screen.dart';
 import 'learner/learner_dashboard_screen.dart';
 import 'expert/expert_dashboard_screen.dart';
@@ -95,7 +96,7 @@ class _SplashScreenState extends State<SplashScreen>
       );
     } else {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
     }
   }
